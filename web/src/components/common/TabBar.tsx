@@ -18,15 +18,14 @@ const TabBar: React.FC = () => {
   ];
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-30 glass border-t border-[var(--color-border)]"
-      role="tablist"
-      aria-label="Navigation"
-    >
-      <div className="max-w-lg mx-auto flex items-stretch justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 glass-thick border-t border-[var(--color-separator)] pb-[env(safe-area-inset-bottom)]" role="tablist">
+      <div className="max-w-2xl mx-auto grid grid-cols-5 h-[50px]">
         {tabs.map((tab) => {
-          const isActive = location.pathname === tab.path;
+          const isActive = location.pathname.startsWith(tab.path);
           const Icon = tab.icon;
+          const color = tab.danger
+            ? 'var(--color-danger)'
+            : isActive ? 'var(--color-primary)' : 'var(--color-text-tertiary)';
 
           return (
             <Link
@@ -34,18 +33,11 @@ const TabBar: React.FC = () => {
               to={tab.path}
               role="tab"
               aria-selected={isActive}
-              aria-label={tab.label}
-              className={[
-                "flex flex-col items-center justify-center gap-0.5",
-                "min-w-16 min-h-14 py-2 px-2",
-                "transition-colors text-xs font-medium",
-                tab.danger
-                  ? isActive ? "text-[var(--color-danger)]" : "text-[var(--color-danger)]/60"
-                  : isActive ? "text-[var(--color-primary)]" : "text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]",
-              ].join(" ")}
+              className="flex flex-col items-center justify-center gap-0.5 min-h-[44px]"
+              style={{ color }}
             >
-              <Icon className={`w-6 h-6 ${isActive ? 'scale-110' : ''} transition-transform`} strokeWidth={isActive ? 2.5 : 2} />
-              <span>{tab.label}</span>
+              <Icon className="w-[22px] h-[22px]" strokeWidth={isActive ? 2.2 : 1.5} />
+              <span className={`text-[10px] ${isActive ? 'font-semibold' : 'font-normal'}`}>{tab.label}</span>
             </Link>
           );
         })}

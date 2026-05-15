@@ -1,36 +1,33 @@
 import React from "react";
 
 type BadgeVariant = "ok" | "alert" | "warning" | "info" | "muted";
+type BadgeSize = "sm" | "md";
 
 interface BadgeProps {
   variant?: BadgeVariant;
+  size?: BadgeSize;
   children: React.ReactNode;
   className?: string;
 }
 
-const variantClasses: Record<BadgeVariant, string> = {
-  ok: "bg-[var(--color-success)]/15 text-[var(--color-success)] border-[var(--color-success)]/30",
-  alert: "bg-[var(--color-danger)]/15 text-[var(--color-danger)] border-[var(--color-danger)]/30",
-  warning: "bg-yellow-500/15 text-yellow-600 border-yellow-500/30",
-  info: "bg-blue-500/15 text-blue-600 border-blue-500/30",
-  muted: "bg-gray-500/15 text-gray-500 border-gray-500/30",
+const colors: Record<BadgeVariant, { bg: string; text: string }> = {
+  ok:      { bg: 'rgba(52,199,89,0.12)',  text: 'var(--color-success)' },
+  alert:   { bg: 'rgba(255,59,48,0.12)',  text: 'var(--color-danger)' },
+  warning: { bg: 'rgba(255,149,0,0.12)',  text: 'var(--color-warning)' },
+  info:    { bg: 'rgba(0,122,255,0.12)',   text: 'var(--color-primary)' },
+  muted:   { bg: 'var(--color-surface-secondary)', text: 'var(--color-text-tertiary)' },
 };
 
-const Badge: React.FC<BadgeProps> = ({
-  variant = "info",
-  children,
-  className = "",
-}) => {
+const Badge: React.FC<BadgeProps> = ({ variant = "info", size = "sm", children, className = "" }) => {
+  const c = colors[variant];
   return (
     <span
-      className={[
-        "inline-flex items-center gap-1 rounded-full border",
-        "px-3 py-0.5 text-xs font-semibold leading-5",
-        variantClasses[variant],
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      style={{ backgroundColor: c.bg, color: c.text }}
+      className={`
+        inline-flex items-center font-medium rounded-[var(--radius-xs)]
+        ${size === 'sm' ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-[13px]'}
+        ${className}
+      `}
     >
       {children}
     </span>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ShieldAlert, Eye } from "lucide-react";
+import { ShieldAlert, Settings } from "lucide-react";
 import TabBar from "../components/common/TabBar";
 import LanguageSwitcher from "../components/common/LanguageSwitcher";
 import AccessibilityPanel from "../components/common/AccessibilityPanel";
@@ -15,22 +15,17 @@ const WardLayout: React.FC = () => {
   const [showA11y, setShowA11y] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-      <a href="#main-content" className="skip-link">Skip to content</a>
-
+    <div className="min-h-screen bg-[var(--color-bg)]">
       {!isChatPage && (
-        <header className="sticky top-0 z-40 glass border-b border-[var(--color-border)]">
-          <div className="max-w-lg mx-auto flex items-center justify-between px-4 h-14">
-            <span className="font-bold text-lg">
-              <span className="text-[var(--color-primary)]">Ali</span>vo
-            </span>
+        <header className="sticky top-0 z-40 glass-thick border-b border-[var(--color-separator)]">
+          <div className="max-w-2xl mx-auto flex items-center justify-between px-5 h-12">
+            <span className="text-[20px] font-bold text-[var(--color-primary)]">Alivo</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowA11y(true)}
-                className="w-9 h-9 flex items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] transition-colors cursor-pointer"
-                aria-label="Accessibility settings"
+                className="w-9 h-9 flex items-center justify-center rounded-full text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-secondary)] transition-colors cursor-pointer"
               >
-                <Eye className="w-4 h-4" />
+                <Settings className="w-5 h-5" />
               </button>
               <LanguageSwitcher />
             </div>
@@ -38,7 +33,7 @@ const WardLayout: React.FC = () => {
         </header>
       )}
 
-      <main className={`max-w-lg mx-auto ${isChatPage ? 'h-screen' : 'pb-24'}`} id="main-content">
+      <main className={`max-w-2xl mx-auto ${isChatPage ? 'h-screen' : 'pb-[70px]'}`}>
         <Outlet />
       </main>
 
@@ -47,10 +42,10 @@ const WardLayout: React.FC = () => {
       {!isSosPage && !isChatPage && (
         <button
           onClick={() => navigate(`/${l}/ward/sos`)}
-          aria-label="SOS Emergency"
-          className="fixed bottom-22 right-4 z-40 w-14 h-14 rounded-full bg-[var(--color-danger)] text-white shadow-lg shadow-[var(--color-danger)]/20 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform duration-300 cursor-pointer"
+          aria-label="SOS"
+          className="fixed bottom-[70px] right-5 z-40 w-[52px] h-[52px] rounded-full bg-[var(--color-danger)] text-white shadow-lg shadow-[var(--color-danger)]/25 flex items-center justify-center active:scale-95 transition-transform duration-150 cursor-pointer"
         >
-          <ShieldAlert className="w-6 h-6" />
+          <ShieldAlert className="w-[22px] h-[22px]" />
         </button>
       )}
 

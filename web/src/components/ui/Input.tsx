@@ -1,74 +1,38 @@
 import React, { useId } from "react";
 
-interface InputProps {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
-  type?: string;
-  placeholder?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
   large?: boolean;
-  className?: string;
-  name?: string;
-  required?: boolean;
-  autoComplete?: string;
 }
 
 const Input: React.FC<InputProps> = ({
-  label,
-  type = "text",
-  placeholder,
-  value,
-  onChange,
-  error,
-  large = false,
-  className = "",
-  name,
-  required,
-  autoComplete,
+  label, error, large = false, className = "", ...rest
 }) => {
   const id = useId();
 
   return (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
+    <div className={`flex flex-col gap-1 ${className}`}>
       {label && (
-        <label
-          htmlFor={id}
-          className={[
-            "font-medium text-[var(--color-text)]",
-            large ? "text-lg" : "text-sm",
-          ].join(" ")}
-        >
+        <label htmlFor={id} className="text-[13px] font-medium text-[var(--color-text-tertiary)] ml-1">
           {label}
-          {required && <span className="text-[var(--color-danger)] ml-0.5">*</span>}
+          {rest.required && <span className="text-[var(--color-danger)] ml-0.5">*</span>}
         </label>
       )}
-
       <input
         id={id}
-        type={type}
-        name={name}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        required={required}
-        autoComplete={autoComplete}
-        className={[
-          "w-full bg-[var(--color-surface)] border border-[var(--color-border)]",
-          "rounded-[var(--radius-sm)] text-[var(--color-text)]",
-          "placeholder:text-[var(--color-text)]/40",
-          "focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent",
-          "transition-all duration-200",
-          large ? "px-5 py-4 text-lg min-h-[56px]" : "px-4 py-3 text-base",
-          error ? "border-[var(--color-danger)] focus:ring-[var(--color-danger)]" : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        className={`
+          w-full bg-[var(--color-surface-secondary)] text-[var(--color-text)]
+          rounded-[var(--radius-sm)] border-0
+          placeholder:text-[var(--color-text-quaternary)]
+          focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40
+          transition-shadow duration-150
+          ${large ? 'h-[50px] px-4 text-[17px]' : 'h-11 px-3.5 text-[15px]'}
+          ${error ? 'ring-2 ring-[var(--color-danger)]/40' : ''}
+        `}
+        {...rest}
       />
-
-      {error && (
-        <p className="text-[var(--color-danger)] text-sm mt-0.5">{error}</p>
-      )}
+      {error && <p className="text-[var(--color-danger)] text-[13px] ml-1">{error}</p>}
     </div>
   );
 };

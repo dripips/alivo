@@ -2,29 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import {
-  Heart, MapPin, CalendarDays, Clock, Pill,
-  Activity, Droplets, Weight, ChevronRight, Smile,
+  Smile, Pill, Activity, Heart, Droplets, Weight,
+  MapPin, CalendarDays, ChevronRight,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
-import Card from '../../components/ui/Card';
 
 interface ScheduleEntry { time: string; days: string[]; }
-interface Medication { id: string; name: string; dosage: string; instructions?: string; schedule: ScheduleEntry[]; }
+interface Medication { id: string; name: string; dosage: string; schedule: ScheduleEntry[]; instructions?: string; }
 interface Appointment { id: string; title: string; scheduledAt: string; location?: string; doctorName?: string; }
 interface Vitals { bloodPressureH?: number; bloodPressureL?: number; heartRate?: number; bloodSugar?: number; weight?: number; }
 
 function timeUntil(timeStr: string, isRu: boolean): string {
   const [h, m] = timeStr.split(':').map(Number);
   const now = new Date();
-  const target = new Date();
-  target.setHours(h, m, 0, 0);
+  const target = new Date(); target.setHours(h, m, 0, 0);
   if (target <= now) target.setDate(target.getDate() + 1);
   const diff = Math.round((target.getTime() - now.getTime()) / 60000);
   if (diff < 60) return isRu ? `через ${diff} мин` : `in ${diff}m`;
-  const hrs = Math.floor(diff / 60);
-  const mins = diff % 60;
-  return isRu ? `через ${hrs} ч ${mins > 0 ? mins + ' мин' : ''}` : `in ${hrs}h${mins > 0 ? ` ${mins}m` : ''}`;
+  const hrs = Math.floor(diff / 60), mins = diff % 60;
+  return isRu ? `через ${hrs} ч${mins > 0 ? ` ${mins} мин` : ''}` : `in ${hrs}h${mins > 0 ? ` ${mins}m` : ''}`;
 }
 
 const HomePage: React.FC = () => {
@@ -50,11 +47,8 @@ const HomePage: React.FC = () => {
           api.get<any>('/users/me'),
           api.get<Vitals | null>('/wellness/latest').catch(() => null),
         ]);
-        setMeds(medsR);
-        setAppts(apptsR);
-        setVitals(vitalsR);
+        setMeds(medsR); setAppts(apptsR); setVitals(vitalsR);
         if (profileR.name) setUserName(profileR.name);
-
         if (profileR.checkInSchedule?.times?.length) {
           const mins = new Date().getHours() * 60 + new Date().getMinutes();
           const times = [...profileR.checkInSchedule.times].sort();
@@ -70,159 +64,140 @@ const HomePage: React.FC = () => {
     : hour < 12 ? (isRu ? 'Доброе утро' : 'Good morning')
     : hour < 18 ? (isRu ? 'Добрый день' : 'Good afternoon')
     : (isRu ? 'Добрый вечер' : 'Good evening');
-
   const firstName = userName.split(' ')[0] || '';
+  const nextAppt = appts[0] || null;
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-8 h-8 border-3 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
-  const nextAppt = appts[0] || null;
-
   return (
-    <div className="space-y-5 px-5 pt-6 pb-6" id="main-content">
-
-      {/* ── Greeting ── */}
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text)]">
-          {greeting}{firstName ? `, ${firstName}` : ''}!
-        </h1>
-        <p className="text-sm text-[var(--color-text-tertiary)] mt-0.5 first-letter:uppercase">
+    <div className="px-5 pt-3 pb-5 space-y-7">
+      {/* Greeting */}
+      <div className="pt-1">
+        <h1 className="text-[34px] font-bold tracking-tight leading-tight">{greeting}{firstName ? `, ${firstName}` : ''}!</h1>
+        <p className="text-[15px] text-[var(--color-text-tertiary)] mt-1 first-letter:uppercase">
           {new Date().toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
         </p>
       </div>
 
-      {/* ── How are you feeling? (replaces "check-in") ── */}
+      {/* Check-in card */}
       {nextTime && (
-        <Card>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0">
+        <Link to={`/${l}/ward/chat`} className="block">
+          <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] p-4 flex items-center gap-4 active:opacity-70 transition-opacity duration-150">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0">
               <Smile className="w-6 h-6 text-[var(--color-primary)]" />
             </div>
-            <div className="flex-1">
-              <p className="font-semibold text-[var(--color-text)]">
-                {isRu ? 'Как вы себя чувствуете?' : 'How are you feeling?'}
-              </p>
-              <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
+            <div className="flex-1 min-w-0">
+              <p className="text-[17px] font-semibold">{isRu ? 'Как вы себя чувствуете?' : 'How are you feeling?'}</p>
+              <p className="text-[14px] text-[var(--color-text-tertiary)] mt-0.5">
                 {isRu ? `Следующий вопрос в ${nextTime}` : `Next check at ${nextTime}`}
-                <span className="text-[var(--color-text-tertiary)]"> · {timeUntil(nextTime, isRu)}</span>
+                {' · '}{timeUntil(nextTime, isRu)}
               </p>
             </div>
+            <ChevronRight className="w-5 h-5 text-[var(--color-text-quaternary)] shrink-0" />
           </div>
-        </Card>
+        </Link>
       )}
 
-      {/* ── Medications today ── */}
+      {/* Medications */}
       {meds.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-[var(--color-text)]">
-              {isRu ? 'Лекарства на сегодня' : 'Today\'s medications'}
+        <section>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h2 className="text-[14px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
+              {isRu ? 'Лекарства' : 'Medications'}
             </h2>
-            <Link to={`/${l}/ward/medications`} className="text-sm text-[var(--color-primary)] font-medium flex items-center">
-              {isRu ? 'Все' : 'All'}<ChevronRight className="w-4 h-4" />
+            <Link to={`/${l}/ward/medications`} className="text-[15px] text-[var(--color-primary)] font-medium">
+              {isRu ? 'Все' : 'All'}
             </Link>
           </div>
-          <div className="space-y-2">
-            {meds.slice(0, 3).map((med) => (
+          <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden">
+            {meds.slice(0, 3).map((med, i) => (
               <Link key={med.id} to={`/${l}/ward/medications`}>
-                <div className="flex items-center gap-3 p-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)]/30 transition-colors">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--color-success)]/10 flex items-center justify-center shrink-0">
-                    <Pill className="w-5 h-5 text-[var(--color-success)]" />
+                <div className={`flex items-center gap-3.5 px-4 py-3.5 min-h-[56px] active:opacity-60 transition-opacity ${i > 0 ? 'border-t border-[var(--color-separator)]' : ''}`}>
+                  <div className="w-9 h-9 rounded-[var(--radius-xs)] bg-[var(--color-success)]/10 flex items-center justify-center shrink-0">
+                    <Pill className="w-[18px] h-[18px] text-[var(--color-success)]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-[var(--color-text)] text-sm">{med.name}</p>
-                    <p className="text-xs text-[var(--color-text-tertiary)]">
+                    <p className="text-[17px] font-medium">{med.name}</p>
+                    <p className="text-[13px] text-[var(--color-text-tertiary)] mt-0.5">
                       {med.dosage} · {med.schedule.map(s => s.time).join(', ')}
                       {med.instructions ? ` · ${med.instructions}` : ''}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)] shrink-0" />
+                  <ChevronRight className="w-5 h-5 text-[var(--color-text-quaternary)] shrink-0" />
                 </div>
               </Link>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* ── Vitals snapshot ── */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-[var(--color-text)]">
-            {isRu ? 'Показатели здоровья' : 'Health vitals'}
+      {/* Vitals */}
+      <section>
+        <div className="flex items-center justify-between mb-2 px-1">
+          <h2 className="text-[14px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
+            {isRu ? 'Показатели' : 'Vitals'}
           </h2>
-          <Link to={`/${l}/ward/wellness`} className="text-sm text-[var(--color-primary)] font-medium flex items-center">
-            {isRu ? 'Подробнее' : 'Details'}<ChevronRight className="w-4 h-4" />
+          <Link to={`/${l}/ward/wellness`} className="text-[15px] text-[var(--color-primary)] font-medium">
+            {isRu ? 'Подробнее' : 'Details'}
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {[
-            { icon: Activity, color: 'var(--color-danger)', label: isRu ? 'Давление' : 'BP', value: vitals?.bloodPressureH ? `${vitals.bloodPressureH}/${vitals.bloodPressureL}` : '—', unit: '' },
+            { icon: Activity, color: 'var(--color-danger)', label: isRu ? 'Давление' : 'BP', value: vitals?.bloodPressureH ? `${vitals.bloodPressureH}/${vitals.bloodPressureL}` : '—' },
             { icon: Heart, color: 'var(--color-primary)', label: isRu ? 'Пульс' : 'Heart rate', value: vitals?.heartRate ? `${vitals.heartRate}` : '—', unit: isRu ? 'уд/мин' : 'bpm' },
             { icon: Droplets, color: 'var(--color-accent)', label: isRu ? 'Сахар' : 'Sugar', value: vitals?.bloodSugar ? `${vitals.bloodSugar}` : '—', unit: isRu ? 'ммоль/л' : 'mmol/L' },
             { icon: Weight, color: 'var(--color-success)', label: isRu ? 'Вес' : 'Weight', value: vitals?.weight ? `${vitals.weight}` : '—', unit: isRu ? 'кг' : 'kg' },
           ].map(({ icon: Icon, color, label, value, unit }) => (
-            <Link key={label} to={`/${l}/ward/wellness`} className="p-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)]/30 transition-colors">
-              <div className="flex items-center gap-2 mb-2">
+            <Link key={label} to={`/${l}/ward/wellness`} className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] p-4 active:opacity-60 transition-opacity duration-150">
+              <div className="flex items-center gap-2 mb-2.5">
                 <Icon className="w-4 h-4" style={{ color }} />
-                <span className="text-xs text-[var(--color-text-tertiary)] font-medium">{label}</span>
+                <span className="text-[13px] text-[var(--color-text-tertiary)] font-medium">{label}</span>
               </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold text-[var(--color-text)]">{value}</span>
-                {unit && <span className="text-xs text-[var(--color-text-tertiary)]">{unit}</span>}
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[28px] font-bold tracking-tight leading-none">{value}</span>
+                {unit && <span className="text-[13px] text-[var(--color-text-tertiary)]">{unit}</span>}
               </div>
             </Link>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* ── Quick actions ── */}
-      <div className="grid grid-cols-2 gap-2">
-        <Link to={`/${l}/ward/walk`} className="flex items-center gap-3 p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-success)]/30 transition-colors">
-          <div className="w-10 h-10 rounded-xl bg-[var(--color-success)]/10 flex items-center justify-center">
-            <MapPin className="w-5 h-5 text-[var(--color-success)]" />
-          </div>
-          <div>
-            <p className="font-medium text-[var(--color-text)] text-sm">{isRu ? 'Прогулка' : 'Walk'}</p>
-            <p className="text-xs text-[var(--color-text-tertiary)]">{isRu ? 'Безопасный выход' : 'Safe walk'}</p>
-          </div>
-        </Link>
-        <Link to={`/${l}/ward/appointments`} className="flex items-center gap-3 p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/30 transition-colors">
-          <div className="w-10 h-10 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center">
-            <CalendarDays className="w-5 h-5 text-[var(--color-accent)]" />
-          </div>
-          <div>
-            <p className="font-medium text-[var(--color-text)] text-sm">{isRu ? 'Визиты к врачу' : 'Appointments'}</p>
-            <p className="text-xs text-[var(--color-text-tertiary)]">
-              {nextAppt ? (isRu ? `Ближайший: ${new Date(nextAppt.scheduledAt).toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short' })}` : `Next: ${new Date(nextAppt.scheduledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`) : (isRu ? 'Нет записей' : 'None scheduled')}
-            </p>
-          </div>
-        </Link>
-      </div>
-
-      {/* ── Upcoming appointment detail ── */}
-      {nextAppt && (
-        <Link to={`/${l}/ward/appointments`}>
-          <Card className="hover:border-[var(--color-accent)]/30 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--color-accent)]/10 flex items-center justify-center shrink-0">
-                <CalendarDays className="w-6 h-6 text-[var(--color-accent)]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[var(--color-text)] truncate">{nextAppt.title}</p>
-                <p className="text-sm text-[var(--color-text-secondary)]">
-                  {new Date(nextAppt.scheduledAt).toLocaleString(isRu ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' })}
-                </p>
-                {nextAppt.doctorName && <p className="text-xs text-[var(--color-text-tertiary)]">{nextAppt.doctorName}</p>}
-                {nextAppt.location && <p className="text-xs text-[var(--color-text-tertiary)]">{nextAppt.location}</p>}
-              </div>
-              <ChevronRight className="w-5 h-5 text-[var(--color-text-tertiary)] shrink-0" />
+      {/* Quick links */}
+      <section>
+        <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden">
+          <Link to={`/${l}/ward/walk`} className="flex items-center gap-3.5 px-4 py-3.5 min-h-[56px] active:opacity-60 transition-opacity">
+            <div className="w-9 h-9 rounded-[var(--radius-xs)] bg-[var(--color-success)]/10 flex items-center justify-center">
+              <MapPin className="w-[18px] h-[18px] text-[var(--color-success)]" />
             </div>
-          </Card>
-        </Link>
-      )}
+            <div className="flex-1">
+              <p className="text-[17px] font-medium">{isRu ? 'Прогулка' : 'Walk'}</p>
+              <p className="text-[13px] text-[var(--color-text-tertiary)] mt-0.5">{isRu ? 'Безопасный выход из дома' : 'Safe walk tracking'}</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-[var(--color-text-quaternary)]" />
+          </Link>
+
+          <div className="border-t border-[var(--color-separator)] ml-[60px]" />
+
+          <Link to={`/${l}/ward/appointments`} className="flex items-center gap-3.5 px-4 py-3.5 min-h-[56px] active:opacity-60 transition-opacity">
+            <div className="w-9 h-9 rounded-[var(--radius-xs)] bg-[var(--color-accent)]/10 flex items-center justify-center">
+              <CalendarDays className="w-[18px] h-[18px] text-[var(--color-accent)]" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[17px] font-medium">{isRu ? 'Визиты к врачу' : 'Appointments'}</p>
+              <p className="text-[13px] text-[var(--color-text-tertiary)] mt-0.5">
+                {nextAppt
+                  ? `${nextAppt.title} · ${new Date(nextAppt.scheduledAt).toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short' })}`
+                  : (isRu ? 'Нет записей' : 'None scheduled')}
+              </p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-[var(--color-text-quaternary)]" />
+          </Link>
+        </div>
+      </section>
     </div>
   );
 };
