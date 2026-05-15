@@ -1,0 +1,6 @@
+{
+  "started": "🚶 Walk started! I'll be expecting you back in {minutes} min. Enjoy!",
+  "ended": "🏠 Welcome back! Glad you're home.",
+  "overdue_alert": "⚠️ {wardName} went for a walk and hasn't returned on time ({minutes} min overdue).{location}\n\nTry to reach them!",
+  "ping": "📍 Location updated."
+}

@@ -1,0 +1,14 @@
+{
+  "intro": "I'm your Alivo companion. I can chat, share something interesting, or just keep you company. What would you like to talk about?",
+  "safety": {
+    "support": "I hear you. That sounds really tough. You're not alone.",
+    "helpline": "If you're in crisis right now, please call the helpline: 988 (free, 24/7).",
+    "alert_to_contacts": "⚠️ ALERT: {wardName} is expressing concerning thoughts.\n\nConcern level: {level}\n\nPlease reach out to {wardName} as soon as possible."
+  },
+  "conversation": {
+    "continue": "Tell me more?",
+    "interesting": "How interesting! What happened next?",
+    "empathy": "I understand how you feel.",
+    "goodbye": "It was nice talking! I'm always here, write anytime. 💙"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "warning": "⚠️ WARNING! This looks very much like a scam!\n\n{explanation}\n\nDo NOT:\n• Share SMS codes\n• Transfer money\n• Install apps requested by callers\n\nHang up and call your bank yourself using the number on your card.",
+  "alert_to_contacts": "🚨 FRAUD ALERT!\n\n{wardName} reports a suspicious situation:\n\"{triggerText}\"\n\nAnalysis: {analysis}\n\nContact {wardName} immediately!",
+  "patterns": {
+    "bank_call": "A real bank NEVER asks for SMS codes over the phone.",
+    "safe_account": "A 'safe account' is ALWAYS a scam. There is no such thing.",
+    "police_call": "Real police officers don't call demanding money transfers.",
+    "remote_access": "Never install remote access apps at a stranger's request.",
+    "secret_operation": "'Don't tell anyone' is a classic scam technique. Real authorities don't operate this way.",
+    "prize_win": "You can't win a prize in a contest you didn't enter."
+  },
+  "resolved": "✅ Situation resolved. Stay safe!"
+}

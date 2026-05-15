@@ -1,0 +1,22 @@
+{
+  "medication_reminder": "⏰ Время принять лекарства:\n{medications}\n{instructions}",
+  "medication_single": "💊 {name} ({dosage})",
+  "medication_instruction": "📝 {instruction}",
+  "medication_confirmed": "✅ Отлично, записал! Приём подтверждён.",
+  "medication_snoozed": "⏰ Хорошо, напомню через 30 минут.",
+  "medication_skipped": "⏭️ Понял, пропуск записан.",
+  "medication_missed_reminder": "Напоминаю про лекарства! {medications}",
+  "medication_missed_alert": "⚠️ {name} не подтвердил приём лекарств ({medications}) уже {minutes} минут.",
+  "condition_diabetes_heat": "🌡️ Сегодня жарко! Не забывайте пить воду и следить за уровнем сахара.",
+  "condition_hypertension_heat": "🌡️ Сегодня жарко ({temp}°C). Пейте больше воды, избегайте прямого солнца.",
+  "condition_general_winter": "🧣 На улице холодно ({temp}°C). Одевайтесь теплее!",
+  "buttons": {
+    "taken": "✅ Принял",
+    "snooze": "⏰ Через 30 мин",
+    "skip": "⏭️ Пропускаю"
+  },
+  "profile": {
+    "updated": "Медицинский профиль обновлён.",
+    "allergy_warning": "⚠️ Внимание! У вас аллергия на {allergy}. Обязательно сообщайте об этом врачу."
+  }
+}

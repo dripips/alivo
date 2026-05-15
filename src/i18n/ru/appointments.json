@@ -1,0 +1,5 @@
+{
+  "reminder": "📅 Напоминание: {title}\n⏰ Время: {time}\n📍 {location}\n👨‍⚕️ {doctor}\n📝 {notes}",
+  "created": "✅ Запись создана: {title}",
+  "completed": "✅ Визит отмечен как выполненный"
+}

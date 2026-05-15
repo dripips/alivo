@@ -1,0 +1,5 @@
+{
+  "reminder": "📅 Reminder: {title}\n⏰ Time: {time}\n📍 {location}\n👨‍⚕️ {doctor}\n📝 {notes}",
+  "created": "✅ Appointment created: {title}",
+  "completed": "✅ Visit marked as completed"
+}

@@ -1,0 +1,5 @@
+{
+  "alert_to_contacts": "🆘 ТРЕВОГА! {wardName} нажал кнопку SOS!\n\n{message}{location}\n\nСрочно свяжитесь!",
+  "triggered": "🆘 SOS отправлен! Ваши контакты оповещены.",
+  "resolved": "✅ SOS снят. Всё в порядке."
+}

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alivo — AI-компаньон для заботы о близких</title>
+  <meta name="description" content="Alivo — бесплатный AI-компаньон для пожилых и уязвимых людей. Check-in, напоминания о лекарствах, защита от мошенников, SOS-кнопка.">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --border: #222;
+      --text: #e5e5e5;
+      --muted: #888;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.15);
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #eab308;
+      --radius: 16px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Nav ─────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(10, 10, 10, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    nav .container { display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    nav a { color: var(--muted); text-decoration: none; margin-left: 28px; font-size: 14px; transition: color 0.2s; }
+    nav a:hover { color: var(--text); }
+    .nav-links { display: flex; align-items: center; }
+    .btn-nav {
+      background: var(--accent); color: #fff; padding: 8px 20px; border-radius: 8px;
+      font-weight: 600; font-size: 14px; margin-left: 28px; transition: opacity 0.2s;
+    }
+    .btn-nav:hover { opacity: 0.85; color: #fff; }
+
+    /* ── Hero ────────────────── */
+    .hero {
+      padding: 160px 0 100px; text-align: center;
+    }
+    .hero-badge {
+      display: inline-block; padding: 6px 16px; border-radius: 999px;
+      background: var(--accent-glow); border: 1px solid rgba(59,130,246,0.3);
+      color: var(--accent); font-size: 13px; font-weight: 500; margin-bottom: 24px;
+    }
+    h1 { font-size: clamp(40px, 6vw, 64px); font-weight: 800; letter-spacing: -2px; line-height: 1.1; margin-bottom: 20px; }
+    h1 .accent { color: var(--accent); }
+    .hero p { font-size: 18px; color: var(--muted); max-width: 600px; margin: 0 auto 40px; }
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--accent); color: #fff; padding: 14px 32px; border-radius: 12px;
+      font-size: 16px; font-weight: 600; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59,130,246,0.3); }
+    .btn-secondary {
+      background: var(--surface); color: var(--text); padding: 14px 32px; border-radius: 12px;
+      font-size: 16px; font-weight: 600; text-decoration: none; border: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--muted); }
+
+    /* ── Features ────────────── */
+    .features { padding: 80px 0; }
+    .features h2 { text-align: center; font-size: 36px; font-weight: 700; margin-bottom: 16px; letter-spacing: -1px; }
+    .features .subtitle { text-align: center; color: var(--muted); font-size: 16px; margin-bottom: 56px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 28px; transition: border-color 0.3s;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card-icon { font-size: 32px; margin-bottom: 16px; }
+    .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .card p { color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+    /* ── Flow ────────────────── */
+    .flow { padding: 80px 0; }
+    .flow h2 { text-align: center; font-size: 36px; font-weight: 700; margin-bottom: 56px; letter-spacing: -1px; }
+    .flow-steps { display: flex; gap: 24px; overflow-x: auto; padding: 0 0 16px; }
+    .flow-step {
+      flex: 0 0 250px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; text-align: center;
+    }
+    .flow-step .num {
+      width: 40px; height: 40px; border-radius: 50%; background: var(--accent-glow);
+      border: 2px solid var(--accent); color: var(--accent); display: inline-flex;
+      align-items: center; justify-content: center; font-weight: 700; margin-bottom: 16px;
+    }
+    .flow-step h3 { font-size: 16px; margin-bottom: 8px; }
+    .flow-step p { color: var(--muted); font-size: 13px; }
+
+    /* ── Pricing ─────────────── */
+    .pricing { padding: 80px 0; }
+    .pricing h2 { text-align: center; font-size: 36px; font-weight: 700; margin-bottom: 16px; letter-spacing: -1px; }
+    .pricing .subtitle { text-align: center; color: var(--muted); font-size: 16px; margin-bottom: 56px; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .price-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 32px; text-align: center;
+    }
+    .price-card.featured { border-color: var(--accent); position: relative; }
+    .price-card.featured::before {
+      content: 'Popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #fff; padding: 4px 16px; border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+    }
+    .price-card h3 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .price-card .price { font-size: 40px; font-weight: 800; margin: 16px 0; letter-spacing: -2px; }
+    .price-card .price span { font-size: 16px; color: var(--muted); font-weight: 400; }
+    .price-card ul { list-style: none; text-align: left; margin: 24px 0; }
+    .price-card li { padding: 6px 0; font-size: 14px; color: var(--muted); }
+    .price-card li::before { content: '✓ '; color: var(--green); font-weight: 700; }
+    .btn-plan {
+      display: block; width: 100%; padding: 12px; border-radius: 10px; text-align: center;
+      text-decoration: none; font-weight: 600; font-size: 15px; transition: opacity 0.2s;
+    }
+    .btn-plan.free { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn-plan.pay { background: var(--accent); color: #fff; }
+    .btn-plan:hover { opacity: 0.85; }
+
+    /* ── Footer ──────────────── */
+    footer {
+      border-top: 1px solid var(--border); padding: 40px 0; text-align: center;
+      color: var(--muted); font-size: 13px;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── Lang Toggle ─────────── */
+    .lang-toggle {
+      cursor: pointer; color: var(--muted); font-size: 13px; border: 1px solid var(--border);
+      padding: 4px 12px; border-radius: 6px; background: transparent; transition: border-color 0.2s;
+    }
+    .lang-toggle:hover { border-color: var(--muted); color: var(--text); }
+
+    [data-lang="en"] { display: none; }
+    body.en [data-lang="ru"] { display: none; }
+    body.en [data-lang="en"] { display: block; }
+    body.en span[data-lang="en"],
+    span[data-lang="ru"] { display: inline; }
+    body.en span[data-lang="ru"] { display: none; }
+    span[data-lang="en"] { display: none; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="container">
+      <div class="logo"><span>Ali</span>vo</div>
+      <div class="nav-links">
+        <a href="#features">
+          <span data-lang="ru">Возможности</span>
+          <span data-lang="en">Features</span>
+        </a>
+        <a href="#pricing">
+          <span data-lang="ru">Тарифы</span>
+          <span data-lang="en">Pricing</span>
+        </a>
+        <a href="/api/docs">API</a>
+        <button class="lang-toggle" onclick="toggleLang()">EN / RU</button>
+        <a class="btn-nav" href="/api/docs">
+          <span data-lang="ru">Начать</span>
+          <span data-lang="en">Get Started</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">Open Source + SaaS</div>
+      <h1>
+        <span data-lang="ru">Рядом, даже<br>когда <span class="accent">далеко</span></span>
+        <span data-lang="en">Close, even<br>when <span class="accent">far away</span></span>
+      </h1>
+      <p data-lang="ru">AI-компаньон для пожилых и уязвимых людей. Check-in, лекарства, защита от мошенников, SOS — через Telegram, VK MAX или веб.</p>
+      <p data-lang="en">AI companion for elderly and vulnerable people. Check-ins, medication reminders, fraud protection, SOS — via Telegram, VK MAX, or web.</p>
+      <div class="hero-buttons">
+        <a class="btn-primary" href="/api/docs">
+          <span data-lang="ru">Попробовать бесплатно</span>
+          <span data-lang="en">Try for Free</span>
+        </a>
+        <a class="btn-secondary" href="https://github.com/bobkov-cc/alivo">
+          <span data-lang="ru">GitHub</span>
+          <span data-lang="en">GitHub</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="container">
+      <h2>
+        <span data-lang="ru">Всё для безопасности</span>
+        <span data-lang="en">Everything for Safety</span>
+      </h2>
+      <p class="subtitle">
+        <span data-lang="ru">Не просто кнопка SOS — а настоящий друг, который всегда рядом</span>
+        <span data-lang="en">Not just an SOS button — a real friend who's always there</span>
+      </p>
+      <div class="grid">
+        <div class="card">
+          <div class="card-icon">💬</div>
+          <h3 data-lang="ru">AI-компаньон</h3><h3 data-lang="en">AI Companion</h3>
+          <p data-lang="ru">Тёплый собеседник, который помнит ваши разговоры, интересуется жизнью и замечает, когда вам плохо.</p>
+          <p data-lang="en">A warm conversationalist who remembers your chats, shows interest, and notices when you're feeling down.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔔</div>
+          <h3 data-lang="ru">Умные check-in'ы</h3><h3 data-lang="en">Smart Check-ins</h3>
+          <p data-lang="ru">Ежедневные проверки с 4-уровневой эскалацией. Не ответили — напомним. Снова тишина — оповестим родных.</p>
+          <p data-lang="en">Daily check-ins with 4-level escalation. No response — we remind. Still quiet — we alert family.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💊</div>
+          <h3 data-lang="ru">Лекарства</h3><h3 data-lang="en">Medications</h3>
+          <p data-lang="ru">Напоминания о приёме с подтверждением. Пропустили — алерт семье. Статистика приверженности.</p>
+          <p data-lang="en">Reminders with confirmation. Missed dose — family alert. Adherence tracking.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🛡️</div>
+          <h3 data-lang="ru">Анти-мошенничество</h3><h3 data-lang="en">Fraud Protection</h3>
+          <p data-lang="ru">"Звонят из банка?" — AI предупредит и мгновенно оповестит всех родственников.</p>
+          <p data-lang="en">"Bank calling?" — AI warns and instantly alerts all family members.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🆘</div>
+          <h3 data-lang="ru">SOS + Геолокация</h3><h3 data-lang="en">SOS + Location</h3>
+          <p data-lang="ru">Одно нажатие — и все контакты получают алерт с вашим местоположением на карте.</p>
+          <p data-lang="en">One tap — all contacts get an alert with your location on the map.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏥</div>
+          <h3 data-lang="ru">Карточка для скорой</h3><h3 data-lang="en">Emergency Card</h3>
+          <p data-lang="ru">QR-код → заболевания, аллергии, лекарства, контакты. Без авторизации. Спасает жизни.</p>
+          <p data-lang="en">QR code → conditions, allergies, medications, contacts. No login needed. Saves lives.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📅</div>
+          <h3 data-lang="ru">Визиты к врачу</h3><h3 data-lang="en">Appointments</h3>
+          <p data-lang="ru">Напоминания с адресом, врачом и заметками: "Взять полис и анализы".</p>
+          <p data-lang="en">Reminders with address, doctor, and notes: "Bring insurance and test results."</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">❤️</div>
+          <h3 data-lang="ru">Дневник здоровья</h3><h3 data-lang="en">Wellness Log</h3>
+          <p data-lang="ru">Давление, сахар, пульс, вес — всё в одном месте. Графики и статистика для семьи.</p>
+          <p data-lang="en">Blood pressure, sugar, heart rate, weight — all in one place. Charts for family.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🚶</div>
+          <h3 data-lang="ru">Безопасные прогулки</h3><h3 data-lang="en">Safe Walks</h3>
+          <p data-lang="ru">"Я вышел на 30 минут" → таймер → не вернулись → алерт с последней геолокацией.</p>
+          <p data-lang="en">"Going out for 30 min" → timer → didn't return → alert with last location.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="flow">
+    <div class="container">
+      <h2>
+        <span data-lang="ru">Начать за 2 минуты</span>
+        <span data-lang="en">Start in 2 Minutes</span>
+      </h2>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="num">1</div>
+          <h3 data-lang="ru">Регистрация</h3><h3 data-lang="en">Sign Up</h3>
+          <p data-lang="ru">Создайте аккаунт для себя (опекун) и для подопечного</p>
+          <p data-lang="en">Create accounts for yourself (guardian) and your ward</p>
+        </div>
+        <div class="flow-step">
+          <div class="num">2</div>
+          <h3 data-lang="ru">Подключите Telegram</h3><h3 data-lang="en">Connect Telegram</h3>
+          <p data-lang="ru">Подопечный пишет боту /start — готово, канал подключён</p>
+          <p data-lang="en">Ward sends /start to the bot — done, channel connected</p>
+        </div>
+        <div class="flow-step">
+          <div class="num">3</div>
+          <h3 data-lang="ru">Настройте расписание</h3><h3 data-lang="en">Set Schedule</h3>
+          <p data-lang="ru">Укажите время check-in'ов и лекарств</p>
+          <p data-lang="en">Set check-in times and medications</p>
+        </div>
+        <div class="flow-step">
+          <div class="num">4</div>
+          <h3 data-lang="ru">Спокойствие</h3><h3 data-lang="en">Peace of Mind</h3>
+          <p data-lang="ru">Система работает. Вы получаете алерты только когда нужно</p>
+          <p data-lang="en">System is running. You only get alerts when needed</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <h2>
+        <span data-lang="ru">Тарифы</span>
+        <span data-lang="en">Pricing</span>
+      </h2>
+      <p class="subtitle">
+        <span data-lang="ru">Бесплатный план — навсегда. Без скрытых платежей.</span>
+        <span data-lang="en">Free plan — forever. No hidden fees.</span>
+      </p>
+      <div class="pricing-grid">
+        <div class="price-card">
+          <h3>Free</h3>
+          <div class="price">$0<span>/mo</span></div>
+          <ul>
+            <li data-lang="ru">1 подопечный</li><li data-lang="en">1 ward</li>
+            <li data-lang="ru">2 экстренных контакта</li><li data-lang="en">2 emergency contacts</li>
+            <li data-lang="ru">50 AI-сообщений/месяц</li><li data-lang="en">50 AI messages/month</li>
+            <li data-lang="ru">Check-in + лекарства</li><li data-lang="en">Check-ins + medications</li>
+            <li data-lang="ru">Карточка для скорой</li><li data-lang="en">Emergency card</li>
+          </ul>
+          <a class="btn-plan free" href="/api/docs">
+            <span data-lang="ru">Начать бесплатно</span>
+            <span data-lang="en">Start Free</span>
+          </a>
+        </div>
+        <div class="price-card featured">
+          <h3>Family</h3>
+          <div class="price">$9.99<span>/mo</span></div>
+          <ul>
+            <li data-lang="ru">3 подопечных</li><li data-lang="en">3 wards</li>
+            <li data-lang="ru">Безлимит контактов</li><li data-lang="en">Unlimited contacts</li>
+            <li data-lang="ru">500 AI-сообщений/месяц</li><li data-lang="en">500 AI messages/month</li>
+            <li data-lang="ru">Все функции</li><li data-lang="en">All features</li>
+            <li data-lang="ru">Дашборд для семьи</li><li data-lang="en">Family dashboard</li>
+            <li data-lang="ru">Анти-мошенничество</li><li data-lang="en">Fraud protection</li>
+          </ul>
+          <a class="btn-plan pay" href="/api/docs">
+            <span data-lang="ru">Выбрать</span>
+            <span data-lang="en">Choose</span>
+          </a>
+        </div>
+        <div class="price-card">
+          <h3>Care</h3>
+          <div class="price">$29.99<span>/mo</span></div>
+          <ul>
+            <li data-lang="ru">Безлимит подопечных</li><li data-lang="en">Unlimited wards</li>
+            <li data-lang="ru">Безлимит всего</li><li data-lang="en">Unlimited everything</li>
+            <li data-lang="ru">API-доступ</li><li data-lang="en">API access</li>
+            <li data-lang="ru">Приоритетная поддержка</li><li data-lang="en">Priority support</li>
+            <li data-lang="ru">Свой брендинг</li><li data-lang="en">Custom branding</li>
+          </ul>
+          <a class="btn-plan pay" href="/api/docs">
+            <span data-lang="ru">Выбрать</span>
+            <span data-lang="en">Choose</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>
+        <span data-lang="ru">Alivo — Open Source проект от <a href="https://bobkov.cc">bobkov.cc</a></span>
+        <span data-lang="en">Alivo — Open Source project by <a href="https://bobkov.cc">bobkov.cc</a></span>
+      </p>
+      <p style="margin-top: 8px;">MIT License | <a href="https://github.com/bobkov-cc/alivo">GitHub</a> | <a href="/api/docs">API Docs</a></p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleLang() {
+      document.body.classList.toggle('en');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "app_name": "Alivo",
+  "greeting": "Hello, {name}!",
+  "welcome": "Welcome to Alivo — your reliable companion.",
+  "error": {
+    "not_found": "Not found",
+    "unauthorized": "Authorization required",
+    "forbidden": "Access denied",
+    "internal": "Internal server error",
+    "validation": "Validation error"
+  },
+  "success": {
+    "created": "Successfully created",
+    "updated": "Successfully updated",
+    "deleted": "Successfully deleted"
+  }
+}

@@ -1,0 +1,391 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  WARD
+  GUARDIAN
+  ADMIN
+}
+
+enum ChannelType {
+  TELEGRAM
+  VK_MAX
+  WEB
+}
+
+enum CheckInStatus {
+  PENDING
+  RESPONDED
+  REMINDED
+  ESCALATED
+  MISSED
+}
+
+enum MedicationLogStatus {
+  PENDING
+  TAKEN
+  SNOOZED
+  SKIPPED
+  MISSED
+}
+
+enum EscalationLevel {
+  REMINDER
+  SECOND_REMINDER
+  ALERT_CONTACTS
+  SOS
+}
+
+enum AlertType {
+  CHECKIN_MISSED
+  MEDICATION_MISSED
+  FRAUD_DETECTED
+  CRISIS_DETECTED
+  MOOD_CONCERN
+}
+
+enum ConversationMode {
+  CHECKIN
+  COMPANION
+  GUARDIAN
+}
+
+enum PlanTier {
+  FREE
+  FAMILY
+  CARE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  TRIALING
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String?  @unique
+  phone     String?  @unique
+  password  String?
+  name      String
+  locale    String   @default("ru")
+  timezone  String   @default("Europe/Moscow")
+  role      Role     @default(WARD)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  channels       UserChannel[]
+  checkIns       CheckIn[]
+  conversations  Conversation[]
+  medicalProfile MedicalProfile?
+  medications    Medication[]
+  fraudAlerts    FraudAlert[]
+
+  wardsAsGuardian    GuardianWard[] @relation("Guardian")
+  guardiansAsWard    GuardianWard[] @relation("Ward")
+  emergencyContacts  EmergencyContact[]
+
+  checkInSchedule    CheckInSchedule?
+  sosAlerts          SosAlert[]
+  appointments       Appointment[]
+  wellnessLogs       WellnessLog[]
+  walkSessions       WalkSession[]
+  emergencyCardToken String?        @unique
+  birthDate          DateTime?
+  subscription       Subscription?
+  usageLogs          UsageLog[]
+}
+
+model UserChannel {
+  id         String      @id @default(uuid())
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  type       ChannelType
+  externalId String
+  username   String?
+  isVerified Boolean     @default(false)
+  isPrimary  Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+
+  @@unique([type, externalId])
+  @@index([userId])
+}
+
+model GuardianWard {
+  id         String   @id @default(uuid())
+  guardian   User     @relation("Guardian", fields: [guardianId], references: [id], onDelete: Cascade)
+  guardianId String
+  ward       User     @relation("Ward", fields: [wardId], references: [id], onDelete: Cascade)
+  wardId     String
+  label      String?
+  createdAt  DateTime @default(now())
+
+  @@unique([guardianId, wardId])
+}
+
+model EmergencyContact {
+  id        String      @id @default(uuid())
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  name      String
+  phone     String?
+  email     String?
+  channel   ChannelType?
+  channelId String?
+  priority  Int         @default(0)
+  createdAt DateTime    @default(now())
+
+  @@index([userId])
+}
+
+model CheckInSchedule {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+  times     Json     // ["08:00", "14:00", "21:00"]
+  days      Json     // ["mon","tue","wed","thu","fri","sat","sun"]
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CheckIn {
+  id              String          @id @default(uuid())
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  scheduledAt     DateTime
+  respondedAt     DateTime?
+  status          CheckInStatus   @default(PENDING)
+  mood            Int?            // 1-5 scale
+  responseText    String?
+  channelUsed     ChannelType?
+  escalationLevel EscalationLevel?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([userId, scheduledAt])
+  @@index([status])
+}
+
+model Conversation {
+  id        String           @id @default(uuid())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  mode      ConversationMode @default(COMPANION)
+  channel   ChannelType
+  startedAt DateTime         @default(now())
+  endedAt   DateTime?
+  summary   String?
+  mood      Int?             // AI-assessed average mood 1-5
+
+  messages Message[]
+
+  @@index([userId, startedAt])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  role           String       // "user" | "assistant" | "system"
+  content        String
+  metadata       Json?        // mood score, safety flags, etc.
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model MedicalProfile {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String   @unique
+  conditions  String[] // ["diabetes_type2", "hypertension"]
+  allergies   String[] // ["penicillin"]
+  bloodType   String?
+  doctorName  String?
+  doctorPhone String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Medication {
+  id           String            @id @default(uuid())
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  name         String
+  dosage       String
+  schedule     Json              // [{time:"08:00", days:["mon"..."sun"]}]
+  instructions String?
+  isActive     Boolean           @default(true)
+  startDate    DateTime
+  endDate      DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  logs MedicationLog[]
+
+  @@index([userId, isActive])
+}
+
+model MedicationLog {
+  id            String              @id @default(uuid())
+  medication    Medication          @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  medicationId  String
+  scheduledAt   DateTime
+  confirmedAt   DateTime?
+  status        MedicationLogStatus @default(PENDING)
+  skippedReason String?
+  createdAt     DateTime            @default(now())
+
+  @@index([medicationId, scheduledAt])
+  @@index([status])
+}
+
+model FraudAlert {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  triggerText  String
+  patterns     String[]
+  aiAnalysis   String
+  channel      ChannelType
+  notifiedAt   DateTime @default(now())
+  resolvedAt   DateTime?
+  resolvedBy   String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// ── SOS Alert ──────────────────────────────────────────
+model SosAlert {
+  id          String      @id @default(uuid())
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  latitude    Float?
+  longitude   Float?
+  message     String?
+  channel     ChannelType?
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  createdAt   DateTime    @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// ── Appointments ───────────────────────────────────────
+model Appointment {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  title        String
+  description  String?
+  location     String?
+  doctorName   String?
+  remindBefore Int      @default(60) // minutes
+  scheduledAt  DateTime
+  notes        String?  // "bring insurance card, test results"
+  isCompleted  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId, scheduledAt])
+}
+
+// ── Wellness Log ───────────────────────────────────────
+model WellnessLog {
+  id              String   @id @default(uuid())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  bloodPressureH  Int?     // systolic
+  bloodPressureL  Int?     // diastolic
+  heartRate       Int?
+  bloodSugar      Float?
+  temperature     Float?
+  weight          Float?
+  notes           String?
+  measuredAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@index([userId, measuredAt])
+}
+
+// ── Walk Session (geo-safety) ──────────────────────────
+model WalkSession {
+  id            String    @id @default(uuid())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  startedAt     DateTime  @default(now())
+  expectedBack  DateTime
+  endedAt       DateTime?
+  lastLatitude  Float?
+  lastLongitude Float?
+  lastPingAt    DateTime?
+  isAlerted     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  @@index([userId, startedAt])
+}
+
+// ══════════════════════════════════════════════════════════
+// SaaS Billing
+// ══════════════════════════════════════════════════════════
+
+model Plan {
+  id              String    @id @default(uuid())
+  tier            PlanTier  @unique
+  name            String
+  nameRu          String
+  description     String
+  descriptionRu   String
+  priceMonthly    Int       // cents / kopecks
+  priceYearly     Int
+  currency        String    @default("usd")
+  maxWards        Int
+  maxContacts     Int
+  aiMessagesMonth Int       // -1 = unlimited
+  features        Json      // ["fraud_detection", "wellness", "walk_safety"]
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId               String             @unique
+  plan                 Plan               @relation(fields: [planId], references: [id])
+  planId               String
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodStart   DateTime           @default(now())
+  currentPeriodEnd     DateTime
+  cancelledAt          DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([stripeCustomerId])
+}
+
+model UsageLog {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      String   // "ai_message", "checkin", "sos", "fraud_alert"
+  count     Int      @default(1)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, type, createdAt])
+}

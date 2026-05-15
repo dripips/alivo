@@ -1,0 +1,22 @@
+{
+  "medication_reminder": "⏰ Time to take your medication:\n{medications}\n{instructions}",
+  "medication_single": "💊 {name} ({dosage})",
+  "medication_instruction": "📝 {instruction}",
+  "medication_confirmed": "✅ Great, noted! Medication taken.",
+  "medication_snoozed": "⏰ OK, I'll remind you in 30 minutes.",
+  "medication_skipped": "⏭️ Got it, skip recorded.",
+  "medication_missed_reminder": "Reminder about your medication! {medications}",
+  "medication_missed_alert": "⚠️ {name} hasn't confirmed taking medication ({medications}) for {minutes} minutes.",
+  "condition_diabetes_heat": "🌡️ It's hot today! Remember to drink water and monitor your blood sugar.",
+  "condition_hypertension_heat": "🌡️ It's hot today ({temp}°C). Drink more water and avoid direct sunlight.",
+  "condition_general_winter": "🧣 It's cold outside ({temp}°C). Dress warmly!",
+  "buttons": {
+    "taken": "✅ Taken",
+    "snooze": "⏰ In 30 min",
+    "skip": "⏭️ Skip"
+  },
+  "profile": {
+    "updated": "Medical profile updated.",
+    "allergy_warning": "⚠️ Warning! You have an allergy to {allergy}. Always inform your doctor."
+  }
+}

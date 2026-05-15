@@ -1,0 +1,5 @@
+{
+  "alert_missed_checkin": "⚠️ {wardName} hasn't responded to the check-in for {minutes} minutes.",
+  "alert_sos": "🆘 URGENT! {wardName} hasn't responded for {minutes} minutes. All contact attempts through every channel have failed.",
+  "guardian_dashboard_invite": "You've been added as an emergency contact for {wardName} on Alivo. Access the dashboard: {url}"
+}

@@ -1,0 +1,5 @@
+{
+  "alert_to_contacts": "🆘 ALERT! {wardName} pressed the SOS button!\n\n{message}{location}\n\nContact them immediately!",
+  "triggered": "🆘 SOS sent! Your contacts have been notified.",
+  "resolved": "✅ SOS resolved. All clear."
+}

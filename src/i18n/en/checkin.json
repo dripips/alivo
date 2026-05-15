@@ -1,0 +1,20 @@
+{
+  "morning_greeting": "Good morning, {name}! How are you feeling? ☀️",
+  "afternoon_greeting": "Good afternoon, {name}! How's your day going?",
+  "evening_greeting": "Good evening, {name}! How was your day?",
+  "reminder_first": "Hi! I'm here, write back when you get a moment 🌤️",
+  "reminder_second": "I'm a bit worried — haven't heard from you in a while. How are you?",
+  "mood_question": "How's your mood from 1 to 5?",
+  "mood_great": "Wonderful! Glad everything is going well! 😊",
+  "mood_good": "Good! Have a great day!",
+  "mood_okay": "Got it. If you want to talk — I'm always here.",
+  "mood_bad": "I'm sorry to hear that. Would you like to talk about it?",
+  "mood_terrible": "I'm here with you. Tell me what happened?",
+  "response_thanks": "Thanks for responding! All noted ✅",
+  "buttons": {
+    "im_ok": "✅ I'm fine",
+    "not_great": "😐 So-so",
+    "need_talk": "💬 Want to talk",
+    "help": "🆘 Need help"
+  }
+}

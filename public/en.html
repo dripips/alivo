@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alivo — AI Safety Companion for Elderly Care | Free & Open Source</title>
+  <meta name="description" content="Alivo is a free AI companion for elderly and vulnerable people. Daily check-ins, medication reminders, fraud protection, SOS button. Works via Telegram.">
+  <meta name="keywords" content="elderly care, AI companion, medication reminders, elderly safety, SOS button, fraud protection, senior care, open source">
+  <meta name="theme-color" content="#09090f">
+  <meta property="og:title" content="Alivo — AI Safety Companion for Elderly Care | Free & Open Source">
+  <meta property="og:description" content="Alivo is a free AI companion for elderly and vulnerable people. Daily check-ins, medication reminders, fraud protection, SOS button. Works via Telegram.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://alivo.cc/en">
+  <meta property="og:site_name" content="Alivo">
+  <link rel="alternate" hreflang="ru" href="https://alivo.cc/ru">
+  <link rel="alternate" hreflang="en" href="https://alivo.cc/en">
+  <link rel="canonical" href="https://alivo.cc/en">
+  <link rel="stylesheet" href="/shared.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Alivo",
+    "description": "Free AI companion for elderly and vulnerable people. Daily check-ins, medication reminders, fraud protection, SOS button.",
+    "url": "https://alivo.cc/en",
+    "applicationCategory": "HealthApplication",
+    "operatingSystem": "Web, Telegram, VK MAX",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "bobkov.cc",
+      "url": "https://bobkov.cc"
+    },
+    "license": "https://opensource.org/licenses/MIT"
+  }
+  </script>
+  <script>
+    const t = localStorage.getItem('theme');
+    if (t) document.documentElement.setAttribute('data-theme', t);
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.setAttribute('data-theme', 'light');
+  </script>
+</head>
+<body>
+  <nav>
+    <div class="container">
+      <a href="/en" class="logo"><span>Ali</span>vo</a>
+      <div class="nav-right">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#pricing" class="nav-link">Pricing</a>
+        <a href="/api/docs" class="nav-link">API</a>
+        <div class="lang-dropdown" id="langDropdown">
+          <button class="lang-trigger" onclick="document.getElementById('langDropdown').classList.toggle('open')">
+            <svg class="lang-flag" viewBox="0 0 640 480"><path fill="#012169" d="M0 0h640v480H0z"/><path fill="#FFF" d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0z"/><path fill="#C8102E" d="m424 281 216 159v40L369 281zm-184 20 6 35L54 480H0zM640 0v3L391 191l2-44L590 0zM0 0l239 176h-60L0 42z"/><path fill="#FFF" d="M241 0v480h160V0zM0 160v160h640V160z"/><path fill="#C8102E" d="M0 193v96h640v-96zM273 0v480h96V0z"/></svg>
+            EN
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="lang-menu">
+            <a href="/en" class="lang-option active">
+              <svg class="lang-flag" viewBox="0 0 640 480"><path fill="#012169" d="M0 0h640v480H0z"/><path fill="#FFF" d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0z"/><path fill="#C8102E" d="m424 281 216 159v40L369 281zm-184 20 6 35L54 480H0zM640 0v3L391 191l2-44L590 0zM0 0l239 176h-60L0 42z"/><path fill="#FFF" d="M241 0v480h160V0zM0 160v160h640V160z"/><path fill="#C8102E" d="M0 193v96h640v-96zM273 0v480h96V0z"/></svg>
+              English
+            </a>
+            <a href="/ru" class="lang-option">
+              <svg class="lang-flag" viewBox="0 0 640 480"><path fill="#fff" d="M0 0h640v160H0z"/><path fill="#0039a6" d="M0 160h640v160H0z"/><path fill="#d52b1e" d="M0 320h640v160H0z"/></svg>
+              Русский
+            </a>
+          </div>
+        </div>
+        <button class="theme-btn" onclick="toggleTheme()" aria-label="Theme">
+          <svg class="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-mesh"></div>
+    <div class="hero-content container">
+      <div class="hero-badge fade-up"><span class="dot"></span> Open Source + SaaS</div>
+      <h1 class="fade-up d1">Close, even when<br><span class="gradient-text">far away</span></h1>
+      <p class="fade-up d2">AI companion for elderly and vulnerable people. Daily check-ins, medication reminders, fraud protection, SOS — via Telegram, VK MAX, or web.</p>
+      <div class="hero-buttons fade-up d3">
+        <a class="btn-primary" href="/api/docs">Try for Free →</a>
+        <a class="btn-ghost" href="https://github.com/bobkov-cc/alivo">GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="container">
+      <h2 class="section-title">Everything for Safety</h2>
+      <p class="section-subtitle">Not just an SOS button — a real friend who's always there</p>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">💬</div>
+          <h3>AI Companion</h3>
+          <p>A warm conversationalist who remembers your chats, shows interest, and notices when you're feeling down.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔔</div>
+          <h3>Smart Check-ins</h3>
+          <p>Daily check-ins with 4-level escalation. No response — we remind. Still quiet — we alert family.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💊</div>
+          <h3>Medications</h3>
+          <p>Reminders with confirmation. Missed dose — family alert. Adherence statistics for caregivers.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🛡️</div>
+          <h3>Fraud Protection</h3>
+          <p>"Bank calling?" — AI warns and instantly alerts all family members about potential scam.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🆘</div>
+          <h3>SOS + Location</h3>
+          <p>One tap — all contacts get an alert with your location on the map.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏥</div>
+          <h3>Emergency Card</h3>
+          <p>QR code → conditions, allergies, medications, contacts. No login needed. Saves lives.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📅</div>
+          <h3>Appointments</h3>
+          <p>Reminders with address, doctor name, and notes: "Bring insurance card and test results."</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">❤️</div>
+          <h3>Wellness Log</h3>
+          <p>Blood pressure, sugar, heart rate, weight — all in one place. Statistics for family and doctor.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🚶</div>
+          <h3>Safe Walks</h3>
+          <p>"Going out for 30 min" → timer → didn't return → alert with last known location.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Start in 2 Minutes</h2>
+      <p class="section-subtitle">No complex setup — just what you need</p>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Sign Up</h3>
+          <p>Create accounts for yourself and your ward</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Telegram</h3>
+          <p>Ward sends /start to the bot — channel connected</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Schedule</h3>
+          <p>Set check-in times and medications</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <h3>Peace of Mind</h3>
+          <p>System is running. Alerts only when needed</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="container">
+      <h2 class="section-title">Pricing</h2>
+      <p class="section-subtitle">Free plan — forever. No hidden fees.</p>
+      <div class="pricing-grid">
+        <div class="price-card">
+          <h3>Free</h3>
+          <p class="price-desc">For one ward</p>
+          <div class="price"><span class="currency">$</span>0<span class="period">/mo</span></div>
+          <p class="price-yearly">Free forever</p>
+          <ul>
+            <li>1 ward</li>
+            <li>2 emergency contacts</li>
+            <li>50 AI messages/month</li>
+            <li>Check-ins + medications</li>
+            <li>Emergency card</li>
+          </ul>
+          <a class="btn-plan free" href="/api/docs">Start Free</a>
+        </div>
+        <div class="price-card featured" data-badge="Popular">
+          <h3>Family</h3>
+          <p class="price-desc">For the whole family</p>
+          <div class="price"><span class="currency">$</span>9.99<span class="period">/mo</span></div>
+          <p class="price-yearly">$99.90/year (save 17%)</p>
+          <ul>
+            <li>3 wards</li>
+            <li>Unlimited contacts</li>
+            <li>500 AI messages/month</li>
+            <li>All features</li>
+            <li>Family dashboard</li>
+            <li>Fraud protection</li>
+          </ul>
+          <a class="btn-plan pay" href="/api/docs">Choose Family</a>
+        </div>
+        <div class="price-card">
+          <h3>Care</h3>
+          <p class="price-desc">For organizations</p>
+          <div class="price"><span class="currency">$</span>29.99<span class="period">/mo</span></div>
+          <p class="price-yearly">$299.90/year (save 17%)</p>
+          <ul>
+            <li>Unlimited wards</li>
+            <li>Unlimited AI messages</li>
+            <li>API access</li>
+            <li>Priority support</li>
+            <li>Custom branding</li>
+          </ul>
+          <a class="btn-plan pay" href="/api/docs">Choose Care</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="/api/docs">API</a>
+        <a href="https://github.com/bobkov-cc/alivo">GitHub</a>
+        <a href="/ru">Русский</a>
+      </div>
+      <p>Alivo — Open Source project by <a href="https://bobkov.cc">bobkov.cc</a> · MIT License</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.querySelector('meta[name="theme-color"]').content = next === 'dark' ? '#09090f' : '#f5f5f7';
+    }
+    document.addEventListener('click', function(e) {
+      const dd = document.getElementById('langDropdown');
+      if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+    });
+  </script>
+</body>
+</html>
