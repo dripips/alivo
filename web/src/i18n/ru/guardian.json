@@ -1,0 +1,20 @@
+{
+  "dashboard": "Дашборд",
+  "wards": "Подопечные",
+  "alerts": "Уведомления",
+  "overview": "Обзор",
+  "ward_detail": "Подробности",
+  "mood_trend": "Динамика настроения",
+  "medication_adherence": "Приверженность лечению",
+  "recent_checkins": "Последние check-in'ы",
+  "fraud_alerts": "Мошенничество",
+  "status_ok": "В порядке",
+  "status_waiting": "Ожидание",
+  "status_alert": "Тревога",
+  "status_escalated": "Эскалация",
+  "status_unknown": "Неизвестно",
+  "last_active": "Активность",
+  "no_wards": "Нет подопечных. Добавьте первого через настройки.",
+  "billing": "Подписка",
+  "usage": "Использование"
+}

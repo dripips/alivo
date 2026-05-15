@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-accent: #8b5cf6;
+  --color-danger: #ef4444;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+
+  --color-bg: #f5f5f7;
+  --color-surface: rgba(255, 255, 255, 0.72);
+  --color-surface-elevated: #ffffff;
+  --color-text: rgba(0, 0, 0, 0.88);
+  --color-text-secondary: rgba(0, 0, 0, 0.55);
+  --color-text-tertiary: rgba(0, 0, 0, 0.28);
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-glass: rgba(255, 255, 255, 0.72);
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+}
+
+:root {
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  color-scheme: light dark;
+}
+
+html.dark {
+  --color-bg: #09090f;
+  --color-surface: rgba(255, 255, 255, 0.04);
+  --color-surface-elevated: #111118;
+  --color-text: rgba(255, 255, 255, 0.92);
+  --color-text-secondary: rgba(255, 255, 255, 0.52);
+  --color-text-tertiary: rgba(255, 255, 255, 0.25);
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-glass: rgba(255, 255, 255, 0.04);
+  --color-primary: #60a5fa;
+  --color-accent: #a78bfa;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass {
+  background: var(--color-glass);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--color-border);
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s var(--ease-spring) both;
+}
+
+/* ── High Contrast Mode ──────────────── */
+html.high-contrast {
+  --color-text: #000000;
+  --color-text-secondary: #1a1a1a;
+  --color-text-tertiary: #333333;
+  --color-border: rgba(0, 0, 0, 0.25);
+  --color-surface: rgba(255, 255, 255, 0.95);
+  --color-primary: #0052cc;
+}
+html.high-contrast.dark {
+  --color-text: #ffffff;
+  --color-text-secondary: #e0e0e0;
+  --color-text-tertiary: #bbbbbb;
+  --color-border: rgba(255, 255, 255, 0.3);
+  --color-surface: rgba(255, 255, 255, 0.12);
+  --color-primary: #79b8ff;
+}
+
+/* ── Reduced Motion ──────────────────── */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* ── Focus visible for keyboard nav ──── */
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Skip to content ─────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 12px 24px;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+.skip-link:focus { top: 16px; }

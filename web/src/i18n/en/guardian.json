@@ -1,0 +1,20 @@
+{
+  "dashboard": "Dashboard",
+  "wards": "Wards",
+  "alerts": "Alerts",
+  "overview": "Overview",
+  "ward_detail": "Details",
+  "mood_trend": "Mood Trend",
+  "medication_adherence": "Medication Adherence",
+  "recent_checkins": "Recent Check-ins",
+  "fraud_alerts": "Fraud Alerts",
+  "status_ok": "OK",
+  "status_waiting": "Waiting",
+  "status_alert": "Alert",
+  "status_escalated": "Escalated",
+  "status_unknown": "Unknown",
+  "last_active": "Last active",
+  "no_wards": "No wards yet. Add one in settings.",
+  "billing": "Billing",
+  "usage": "Usage"
+}
