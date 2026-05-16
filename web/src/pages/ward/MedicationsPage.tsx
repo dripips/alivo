@@ -107,19 +107,13 @@ const MedicationsPage: React.FC = () => {
     return Math.round((taken / medications.length) * 100);
   }, [medications]);
 
-  /* Take action */
   const handleTake = async (medId: string) => {
     setActionLoading(medId);
-    try {
-      await api.post(`/medical/medications/${medId}/take`);
-      setMedications((prev) =>
-        prev.map((m) => (m.id === medId ? { ...m, status: 'taken' as const } : m)),
-      );
-    } catch {
-      /* silently fail */
-    } finally {
-      setActionLoading(null);
-    }
+    setMedications((prev) =>
+      prev.map((m) => (m.id === medId ? { ...m, status: 'taken' as const } : m)),
+    );
+    await api.post(`/medical/medications/${medId}/take`).catch(() => {});
+    setActionLoading(null);
   };
 
   /* Status dot color */
@@ -144,7 +138,7 @@ const MedicationsPage: React.FC = () => {
   }
 
   return (
-    <div className="px-5 pb-28 space-y-7">
+    <div className="px-5 pt-4 pb-28 space-y-7">
       {/* ── Title + adherence badge ── */}
       <div className="flex items-center gap-3">
         <h1 className="text-[34px] font-bold text-[var(--color-text)] leading-tight">
@@ -192,9 +186,14 @@ const MedicationsPage: React.FC = () => {
               {/* Grouped list card */}
               <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden">
                 {group.medications.map((med, idx) => {
-                  const isTaken = med.status === 'taken';
-                  const isPending = med.status === 'pending';
-                  const isUpcoming = !med.status || med.status === 'upcoming';
+                  const now = new Date();
+                  const [sh, sm] = group.time.split(':').map(Number);
+                  const schedMinutes = sh * 60 + sm;
+                  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+                  const autoStatus = med.status || (schedMinutes <= nowMinutes ? 'pending' : 'upcoming');
+                  const isTaken = autoStatus === 'taken';
+                  const isPending = autoStatus === 'pending';
+                  const isUpcoming = autoStatus === 'upcoming';
 
                   return (
                     <div key={`${med.id}-${group.time}`}>
@@ -207,7 +206,7 @@ const MedicationsPage: React.FC = () => {
                       <div className="flex items-center gap-3 min-h-[56px] px-4 py-3">
                         {/* Status dot in icon box */}
                         <div className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center shrink-0">
-                          <div className={`w-3 h-3 rounded-full ${dotColor(med.status)}`} />
+                          <div className={`w-3 h-3 rounded-full ${dotColor(autoStatus)}`} />
                         </div>
 
                         {/* Content */}

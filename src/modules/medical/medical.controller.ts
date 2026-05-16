@@ -47,6 +47,24 @@ export class MedicalController {
     return this.medical.getMedications(req.user.id);
   }
 
+  @Post('medications/:id/take')
+  @ApiOperation({ summary: 'Confirm medication taken' })
+  takeMedication(@Req() req: any, @Param('id') id: string) {
+    return this.medical.logMedicationAction(req.user.id, id, 'TAKEN');
+  }
+
+  @Post('medications/:id/skip')
+  @ApiOperation({ summary: 'Skip medication' })
+  skipMedication(@Req() req: any, @Param('id') id: string) {
+    return this.medical.logMedicationAction(req.user.id, id, 'SKIPPED');
+  }
+
+  @Post('medications/:id/snooze')
+  @ApiOperation({ summary: 'Snooze medication (remind later)' })
+  snoozeMedication(@Req() req: any, @Param('id') id: string) {
+    return this.medical.logMedicationAction(req.user.id, id, 'SNOOZED');
+  }
+
   @Delete('medications/:id')
   @ApiOperation({ summary: 'Deactivate a medication' })
   deactivateMedication(@Req() req: any, @Param('id') id: string) {

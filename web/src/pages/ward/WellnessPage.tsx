@@ -155,7 +155,7 @@ const WellnessPage: React.FC = () => {
   const recentEntries = history.slice(0, 7);
 
   return (
-    <div className="px-5 pb-28 space-y-7">
+    <div className="px-5 pt-4 pb-28 space-y-7">
       {/* ── Title + period toggle ── */}
       <div className="flex items-center justify-between">
         <h1 className="text-[34px] font-bold text-[var(--color-text)] leading-tight">

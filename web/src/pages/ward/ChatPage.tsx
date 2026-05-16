@@ -75,7 +75,7 @@ const ChatPage: React.FC = () => {
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
 
-  const { connected, incoming, sendMessage, sendCallback } = useChatSocket(user?.id || null);
+  const { connected, incoming, sendMessage, sendCallback } = useChatSocket(user?.id || null, true);
 
   /* Incoming messages */
   useEffect(() => {

@@ -162,6 +162,24 @@ export class MedicalService {
     });
   }
 
+  async logMedicationAction(userId: string, medicationId: string, status: string) {
+    const med = await this.prisma.medication.findFirst({
+      where: { id: medicationId, userId },
+    });
+    if (!med) return { error: 'Not found' };
+
+    const log = await this.prisma.medicationLog.create({
+      data: {
+        medicationId,
+        scheduledAt: new Date(),
+        status: status as any,
+        confirmedAt: status === 'TAKEN' ? new Date() : undefined,
+      },
+    });
+
+    return log;
+  }
+
   async getMedicationAdherence(userId: string, days = 30) {
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const logs = await this.prisma.medicationLog.findMany({
