@@ -1,12 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+  ChevronLeft,
+  Heart,
+  Activity,
+  Droplets,
+  Weight,
+  Pill,
+  ShieldAlert,
+  Clock,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Check,
+  X,
+} from 'lucide-react';
 import { api } from '../../services/api';
-import Card from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
-import Button from '../../components/ui/Button';
 
-/* ---------- Types ---------- */
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
 
 interface MoodEntry {
   id: string;
@@ -27,6 +41,7 @@ interface Medication {
   name: string;
   dosage: string;
   schedule: string;
+  taken?: boolean;
 }
 
 interface MedicalProfile {
@@ -35,6 +50,14 @@ interface MedicalProfile {
   bloodType: string;
   doctorName: string;
   doctorPhone: string;
+}
+
+interface WellnessVitals {
+  systolic?: number;
+  diastolic?: number;
+  heartRate?: number;
+  bloodSugar?: number;
+  weight?: number;
 }
 
 interface FraudAlert {
@@ -50,6 +73,7 @@ interface WardDetailData {
     locale: string;
     isActive: boolean;
     lastActive: string | null;
+    status?: string;
   };
   mood: {
     average: number | null;
@@ -69,17 +93,20 @@ interface WardDetailData {
     };
     profile: MedicalProfile;
   };
+  wellness?: WellnessVitals;
   fraudAlerts: FraudAlert[];
 }
 
-/* ---------- Helpers ---------- */
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
 
-const moodColor: Record<number, string> = {
-  1: 'bg-red-500',
-  2: 'bg-orange-500',
-  3: 'bg-yellow-500',
-  4: 'bg-green-500',
-  5: 'bg-blue-500',
+const moodColors: Record<number, string> = {
+  1: '#FF3B30',
+  2: '#FF9500',
+  3: '#FFCC00',
+  4: '#34C759',
+  5: '#007AFF',
 };
 
 function formatDate(iso: string): string {
@@ -91,12 +118,23 @@ function formatDate(iso: string): string {
   });
 }
 
-/* ---------- Component ---------- */
+const statusMap: Record<string, { label: string; labelEn: string; color: string; bg: string }> = {
+  ok:      { label: 'В порядке',  labelEn: 'OK',      color: 'var(--color-success)', bg: 'color-mix(in srgb, var(--color-success) 12%, transparent)' },
+  alert:   { label: 'Тревога',    labelEn: 'Alert',    color: 'var(--color-danger)',  bg: 'color-mix(in srgb, var(--color-danger) 12%, transparent)' },
+  waiting: { label: 'Ожидание',   labelEn: 'Waiting',  color: 'var(--color-warning)', bg: 'color-mix(in srgb, var(--color-warning) 12%, transparent)' },
+  unknown: { label: 'Неизвестно', labelEn: 'Unknown',  color: 'var(--color-text-tertiary)', bg: 'var(--color-surface-secondary)' },
+};
+
+/* ------------------------------------------------------------------ */
+/*  WardDetail                                                         */
+/* ------------------------------------------------------------------ */
 
 const WardDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation(['guardian', 'common']);
+  const { id, lang } = useParams<{ id: string; lang: string }>();
+  const { t, i18n } = useTranslation(['guardian', 'common']);
   const navigate = useNavigate();
+  const l = lang || 'ru';
+  const isRu = i18n.language === 'ru';
 
   const [data, setData] = useState<WardDetailData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,266 +149,359 @@ const WardDetail: React.FC = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  /* ---- Loading ---- */
+  /* Loading */
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <p className="text-[var(--color-text-secondary)] text-lg animate-pulse">
-          {t('common:loading')}
-        </p>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-3 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  /* ---- Error ---- */
+  /* Error */
   if (error || !data) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <p className="text-[var(--color-danger)] text-lg">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <p className="text-[var(--color-danger)] text-[17px]">
           {t('common:error')}: {error ?? 'Unknown'}
         </p>
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+        <button
+          onClick={() => navigate(-1)}
+          className="text-[var(--color-primary)] text-[17px] font-medium active:opacity-60 transition-opacity cursor-pointer"
+        >
           {t('common:back')}
-        </Button>
+        </button>
       </div>
     );
   }
 
-  const { ward, mood, checkIns, medical, fraudAlerts } = data;
+  const { ward, mood, checkIns, medical, fraudAlerts, wellness } = data;
   const adherencePercent = Math.round(medical.adherence.adherenceRate * 100);
+  const status = statusMap[ward.status || (ward.isActive ? 'ok' : 'unknown')] || statusMap.unknown;
+
+  const TrendIcon =
+    mood.trend === 'improving' ? TrendingUp :
+    mood.trend === 'declining' ? TrendingDown : Minus;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Back link */}
+    <div className="px-5 pt-3 pb-8 space-y-7 max-w-3xl mx-auto">
+      {/* ── Back button ── */}
       <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-1 text-sm text-[var(--color-primary)] hover:underline cursor-pointer"
+        onClick={() => navigate(`/${l}/guardian/dashboard`)}
+        className="inline-flex items-center gap-1 text-[17px] text-[var(--color-primary)] font-medium active:opacity-60 transition-opacity cursor-pointer -ml-1"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-        {t('common:back')}
+        <ChevronLeft className="w-5 h-5" />
+        {isRu ? 'Дашборд' : 'Dashboard'}
       </button>
 
-      {/* ---- Header ---- */}
-      <Card className="animate-fade-up">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text)]">{ward.name}</h1>
-            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-              {t('guardian:last_active')}:{' '}
-              {ward.lastActive ? formatDate(ward.lastActive) : '--'}
-            </p>
-          </div>
-          <Badge variant={ward.isActive ? 'ok' : 'muted'}>
-            {ward.isActive ? t('guardian:status_ok') : t('guardian:status_unknown')}
-          </Badge>
+      {/* ── Large title + status ── */}
+      <div className="animate-fade-up">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-[34px] font-bold tracking-tight leading-tight">
+            {ward.name}
+          </h1>
+          <span
+            className="text-[13px] font-semibold px-2.5 py-1 rounded-[var(--radius-xs)]"
+            style={{ background: status.bg, color: status.color }}
+          >
+            {isRu ? status.label : status.labelEn}
+          </span>
         </div>
-      </Card>
+        {ward.lastActive && (
+          <p className="text-[15px] text-[var(--color-text-tertiary)] mt-1">
+            {isRu ? 'Последняя активность' : 'Last active'}: {formatDate(ward.lastActive)}
+          </p>
+        )}
+      </div>
 
-      {/* ---- Mood ---- */}
-      <Card
-        className="animate-fade-up"
-        {...({ style: { animationDelay: '60ms' } } as React.HTMLAttributes<HTMLDivElement>)}
-      >
-        <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-          {t('guardian:mood_trend')}
+      {/* ── Mood Section ── */}
+      <section className="animate-fade-up" style={{ animationDelay: '40ms' }}>
+        <h2 className="text-[14px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide mb-3 px-1">
+          {isRu ? 'Настроение' : 'Mood'}
         </h2>
 
-        <div className="flex items-center gap-4 mb-5">
-          <span className="text-3xl font-bold text-[var(--color-text)]">
-            {mood.average != null ? mood.average.toFixed(1) : '--'}
-          </span>
-          {mood.trend && (
-            <span className="text-sm text-[var(--color-text-secondary)]">{mood.trend}</span>
+        <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] p-5">
+          {/* Average + trend */}
+          <div className="flex items-center gap-4 mb-5">
+            <span className="text-[40px] font-bold text-[var(--color-text)] leading-none">
+              {mood.average != null ? mood.average.toFixed(1) : '--'}
+            </span>
+            {mood.trend && (
+              <div className="flex items-center gap-1.5">
+                <TrendIcon
+                  className="w-5 h-5"
+                  style={{
+                    color:
+                      mood.trend === 'improving'
+                        ? 'var(--color-success)'
+                        : mood.trend === 'declining'
+                        ? 'var(--color-danger)'
+                        : 'var(--color-text-tertiary)',
+                  }}
+                />
+                <span className="text-[15px] text-[var(--color-text-tertiary)] capitalize">
+                  {mood.trend}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Last 10 check-in mood dots */}
+          <div className="flex items-end gap-2 flex-wrap">
+            {mood.data.slice(0, 10).map((entry) => (
+              <div key={entry.id} className="flex flex-col items-center gap-1.5" title={entry.note ?? ''}>
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-[13px] font-bold"
+                  style={{ background: moodColors[entry.score] || '#8E8E93' }}
+                >
+                  {entry.score}
+                </div>
+                <span className="text-[11px] text-[var(--color-text-quaternary)]">
+                  {new Date(entry.createdAt).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </span>
+              </div>
+            ))}
+            {mood.data.length === 0 && (
+              <p className="text-[15px] text-[var(--color-text-tertiary)]">
+                {isRu ? 'Нет данных' : 'No data'}
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Medications ── */}
+      <section className="animate-fade-up" style={{ animationDelay: '80ms' }}>
+        <h2 className="text-[14px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide mb-3 px-1">
+          {isRu ? 'Лекарства' : 'Medications'}
+        </h2>
+
+        <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden">
+          {/* Adherence bar */}
+          <div className="px-5 py-4">
+            <div className="flex items-center justify-between text-[15px] mb-2">
+              <span className="text-[var(--color-text-tertiary)]">
+                {isRu ? 'Приверженность' : 'Adherence'}
+              </span>
+              <span className="font-bold text-[var(--color-text)]">{adherencePercent}%</span>
+            </div>
+            <div className="w-full h-2.5 rounded-full bg-[var(--color-surface-secondary)] overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${adherencePercent}%`,
+                  background:
+                    adherencePercent >= 80
+                      ? 'var(--color-success)'
+                      : adherencePercent >= 50
+                      ? 'var(--color-warning)'
+                      : 'var(--color-danger)',
+                }}
+              />
+            </div>
+            <p className="text-[13px] text-[var(--color-text-quaternary)] mt-1.5">
+              {medical.adherence.taken}/{medical.adherence.total} {isRu ? 'принято' : 'taken'}
+            </p>
+          </div>
+
+          {/* Medication list */}
+          {medical.medications.map((med, i) => (
+            <div key={med.id}>
+              <div className="border-t border-[var(--color-separator)] ml-[60px]" />
+              <div className="flex items-center gap-3.5 px-5 py-3.5 min-h-[52px]">
+                <div className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center shrink-0" style={{ background: 'color-mix(in srgb, var(--color-success) 12%, transparent)' }}>
+                  <Pill className="w-[18px] h-[18px] text-[var(--color-success)]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[17px] font-medium text-[var(--color-text)]">{med.name}</p>
+                  <p className="text-[13px] text-[var(--color-text-tertiary)] mt-0.5">
+                    {med.dosage} {med.schedule ? `· ${med.schedule}` : ''}
+                  </p>
+                </div>
+                {med.taken != null && (
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                    style={{
+                      background: med.taken
+                        ? 'color-mix(in srgb, var(--color-success) 14%, transparent)'
+                        : 'color-mix(in srgb, var(--color-danger) 14%, transparent)',
+                    }}
+                  >
+                    {med.taken ? (
+                      <Check className="w-4 h-4 text-[var(--color-success)]" />
+                    ) : (
+                      <X className="w-4 h-4 text-[var(--color-danger)]" />
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {medical.medications.length === 0 && (
+            <div className="px-5 py-4 border-t border-[var(--color-separator)]">
+              <p className="text-[15px] text-[var(--color-text-tertiary)]">
+                {isRu ? 'Нет лекарств' : 'No medications'}
+              </p>
+            </div>
           )}
         </div>
+      </section>
 
-        {/* Last 10 mood dots */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {mood.data.slice(0, 10).map((entry) => (
+      {/* ── Wellness Vitals ── */}
+      <section className="animate-fade-up" style={{ animationDelay: '120ms' }}>
+        <h2 className="text-[14px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide mb-3 px-1">
+          {isRu ? 'Показатели здоровья' : 'Wellness'}
+        </h2>
+
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            {
+              icon: <Activity className="w-[18px] h-[18px] text-[var(--color-danger)]" />,
+              iconBg: 'color-mix(in srgb, var(--color-danger) 14%, transparent)',
+              label: isRu ? 'Давление' : 'BP',
+              value:
+                wellness?.systolic != null && wellness?.diastolic != null
+                  ? `${wellness.systolic}/${wellness.diastolic}`
+                  : '--',
+              unit: 'mmHg',
+            },
+            {
+              icon: <Heart className="w-[18px] h-[18px] text-[var(--color-primary)]" />,
+              iconBg: 'color-mix(in srgb, var(--color-primary) 14%, transparent)',
+              label: isRu ? 'Пульс' : 'Heart Rate',
+              value: wellness?.heartRate != null ? String(wellness.heartRate) : '--',
+              unit: isRu ? 'уд/мин' : 'bpm',
+            },
+            {
+              icon: <Droplets className="w-[18px] h-[18px] text-[var(--color-accent)]" />,
+              iconBg: 'color-mix(in srgb, var(--color-accent) 14%, transparent)',
+              label: isRu ? 'Сахар' : 'Sugar',
+              value: wellness?.bloodSugar != null ? wellness.bloodSugar.toFixed(1) : '--',
+              unit: 'mmol/L',
+            },
+            {
+              icon: <Weight className="w-[18px] h-[18px] text-[var(--color-success)]" />,
+              iconBg: 'color-mix(in srgb, var(--color-success) 14%, transparent)',
+              label: isRu ? 'Вес' : 'Weight',
+              value: wellness?.weight != null ? wellness.weight.toFixed(1) : '--',
+              unit: isRu ? 'кг' : 'kg',
+            },
+          ].map(({ icon, iconBg, label, value, unit }) => (
             <div
-              key={entry.id}
-              className="flex flex-col items-center gap-1"
-              title={entry.note ?? ''}
+              key={label}
+              className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] p-4"
             >
               <div
-                className={[
-                  'w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold',
-                  moodColor[entry.score] ?? 'bg-gray-400',
-                ].join(' ')}
+                className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center mb-2"
+                style={{ background: iconBg }}
               >
-                {entry.score}
+                {icon}
               </div>
-              <span className="text-[10px] text-[var(--color-text-tertiary)]">
-                {new Date(entry.createdAt).toLocaleDateString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </span>
+              <span className="text-[13px] text-[var(--color-text-tertiary)]">{label}</span>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-[22px] font-bold text-[var(--color-text)] leading-none">
+                  {value}
+                </span>
+                <span className="text-[13px] text-[var(--color-text-quaternary)]">{unit}</span>
+              </div>
             </div>
           ))}
         </div>
-      </Card>
+      </section>
 
-      {/* ---- Medication Adherence ---- */}
-      <Card
-        className="animate-fade-up"
-        {...({ style: { animationDelay: '120ms' } } as React.HTMLAttributes<HTMLDivElement>)}
-      >
-        <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-          {t('guardian:medication_adherence')}
-        </h2>
-
-        {/* Percentage bar */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between text-sm mb-1">
-            <span className="text-[var(--color-text-secondary)]">
-              {medical.adherence.taken}/{medical.adherence.total}
-            </span>
-            <span className="font-semibold text-[var(--color-text)]">{adherencePercent}%</span>
-          </div>
-          <div className="w-full h-3 rounded-full bg-[var(--color-surface)] overflow-hidden">
-            <div
-              className="h-full rounded-full bg-[var(--color-success)] transition-all duration-500"
-              style={{ width: `${adherencePercent}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Medication list */}
-        {medical.medications.length > 0 && (
-          <ul className="space-y-2">
-            {medical.medications.map((med) => (
-              <li
-                key={med.id}
-                className="flex items-center justify-between py-2 border-b border-[var(--color-border)] last:border-b-0"
-              >
-                <div>
-                  <p className="font-medium text-[var(--color-text)]">{med.name}</p>
-                  <p className="text-xs text-[var(--color-text-secondary)]">{med.dosage}</p>
-                </div>
-                <span className="text-xs text-[var(--color-text-tertiary)]">{med.schedule}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-
-      {/* ---- Medical Profile ---- */}
-      <Card
-        className="animate-fade-up"
-        {...({ style: { animationDelay: '180ms' } } as React.HTMLAttributes<HTMLDivElement>)}
-      >
-        <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-          {t('common:profile')}
-        </h2>
-
-        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-          <div>
-            <dt className="text-[var(--color-text-tertiary)]">Conditions</dt>
-            <dd className="text-[var(--color-text)]">
-              {medical.profile.conditions.length > 0
-                ? medical.profile.conditions.join(', ')
-                : '--'}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--color-text-tertiary)]">Allergies</dt>
-            <dd className="text-[var(--color-text)]">
-              {medical.profile.allergies.length > 0
-                ? medical.profile.allergies.join(', ')
-                : '--'}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--color-text-tertiary)]">Blood Type</dt>
-            <dd className="text-[var(--color-text)]">{medical.profile.bloodType || '--'}</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--color-text-tertiary)]">Doctor</dt>
-            <dd className="text-[var(--color-text)]">
-              {medical.profile.doctorName || '--'}
-              {medical.profile.doctorPhone && (
-                <span className="text-[var(--color-text-secondary)] ml-1">
-                  ({medical.profile.doctorPhone})
-                </span>
-              )}
-            </dd>
-          </div>
-        </dl>
-      </Card>
-
-      {/* ---- Fraud Alerts ---- */}
+      {/* ── Fraud Alerts ── */}
       {fraudAlerts.length > 0 && (
-        <Card
-          className="animate-fade-up border-[var(--color-danger)]/30"
-          {...({ style: { animationDelay: '240ms' } } as React.HTMLAttributes<HTMLDivElement>)}
-        >
-          <h2 className="text-lg font-semibold text-[var(--color-danger)] mb-4">
-            {t('guardian:fraud_alerts')}
+        <section className="animate-fade-up" style={{ animationDelay: '160ms' }}>
+          <h2 className="text-[14px] font-semibold text-[var(--color-danger)] uppercase tracking-wide mb-3 px-1">
+            {isRu ? 'Подозрительная активность' : 'Fraud Alerts'}
           </h2>
 
-          <ul className="space-y-3">
+          <div className="space-y-3">
             {fraudAlerts.map((alert) => (
-              <li
+              <div
                 key={alert.id}
-                className="p-3 rounded-[var(--radius-sm)] bg-[var(--color-danger)]/5 border border-[var(--color-danger)]/15"
+                className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] p-4 border-l-4 border-[var(--color-danger)]"
               >
-                <p className="text-sm font-medium text-[var(--color-text)] mb-1">
-                  {alert.triggerText}
-                </p>
-                <div className="flex flex-wrap gap-1 mb-1">
-                  {alert.patterns.map((p, i) => (
-                    <Badge key={i} variant="alert">
-                      {p}
-                    </Badge>
-                  ))}
+                <div className="flex items-start gap-3">
+                  <div
+                    className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: 'color-mix(in srgb, var(--color-danger) 12%, transparent)' }}
+                  >
+                    <ShieldAlert className="w-[18px] h-[18px] text-[var(--color-danger)]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-medium text-[var(--color-text)]">
+                      {alert.triggerText}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {alert.patterns.map((p, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex text-[11px] font-medium px-2 py-0.5 rounded-[var(--radius-xs)]"
+                          style={{
+                            background: 'color-mix(in srgb, var(--color-danger) 10%, transparent)',
+                            color: 'var(--color-danger)',
+                          }}
+                        >
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-[13px] text-[var(--color-text-quaternary)] mt-2">
+                      {formatDate(alert.createdAt)}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-[var(--color-text-tertiary)]">
-                  {formatDate(alert.createdAt)}
-                </p>
-              </li>
+              </div>
             ))}
-          </ul>
-        </Card>
+          </div>
+        </section>
       )}
 
-      {/* ---- Recent Check-ins ---- */}
-      <Card
-        className="animate-fade-up"
-        {...({ style: { animationDelay: '300ms' } } as React.HTMLAttributes<HTMLDivElement>)}
-      >
-        <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-          {t('guardian:recent_checkins')}
+      {/* ── Recent Check-ins Timeline ── */}
+      <section className="animate-fade-up" style={{ animationDelay: '200ms' }}>
+        <h2 className="text-[14px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide mb-3 px-1">
+          {isRu ? 'Последние чек-ины' : 'Recent Check-ins'}
         </h2>
 
         {checkIns.recent.length === 0 ? (
-          <p className="text-[var(--color-text-secondary)] text-sm">{t('common:no_data')}</p>
+          <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] p-5 text-center">
+            <p className="text-[15px] text-[var(--color-text-tertiary)]">
+              {isRu ? 'Нет данных' : 'No data'}
+            </p>
+          </div>
         ) : (
-          <ol className="relative border-l-2 border-[var(--color-border)] ml-3 space-y-4">
-            {checkIns.recent.map((ci) => (
-              <li key={ci.id} className="pl-5 relative">
-                <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-[var(--color-primary)] border-2 border-[var(--color-bg)]" />
-                <p className="text-sm font-medium text-[var(--color-text)]">{ci.summary}</p>
-                <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">
-                  {formatDate(ci.createdAt)}
-                </p>
-              </li>
+          <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden">
+            {checkIns.recent.map((ci, idx) => (
+              <div key={ci.id}>
+                {idx > 0 && (
+                  <div className="border-t border-[var(--color-separator)] ml-[60px]" />
+                )}
+                <div className="flex items-center gap-3.5 px-5 py-3.5 min-h-[56px]">
+                  <div
+                    className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center shrink-0"
+                    style={{ background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)' }}
+                  >
+                    <Clock className="w-[18px] h-[18px] text-[var(--color-primary)]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-medium text-[var(--color-text)]">
+                      {ci.summary}
+                    </p>
+                    <p className="text-[13px] text-[var(--color-text-quaternary)] mt-0.5">
+                      {formatDate(ci.createdAt)}
+                    </p>
+                  </div>
+                </div>
+              </div>
             ))}
-          </ol>
+          </div>
         )}
-      </Card>
+      </section>
     </div>
   );
 };

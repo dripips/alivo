@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Send, ChevronLeft, MessageCircle } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { useChatSocket } from '../../hooks/useChatSocket';
+import { api } from '../../services/api';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -119,20 +120,34 @@ const ChatPage: React.FC = () => {
     if (connected) {
       sendMessage(content);
     } else {
-      setTimeout(() => {
-        setTyping(false);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `ai-${Date.now()}`,
-            role: 'assistant',
-            content: isRu
-              ? 'Спасибо за сообщение! Чат-сервер сейчас не подключён. Когда будет настроен AI-ключ, я смогу полноценно общаться.'
-              : "Thanks for your message! Chat server is not connected right now. Once the AI key is configured, I'll be fully available.",
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          },
-        ]);
-      }, 1200);
+      (async () => {
+        try {
+          const res = await api.post<{ reply: string }>('/companion/chat', { message: content });
+          setTyping(false);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `ai-${Date.now()}`,
+              role: 'assistant',
+              content: res.reply,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+        } catch {
+          setTyping(false);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `ai-${Date.now()}`,
+              role: 'assistant',
+              content: isRu
+                ? 'Не удалось получить ответ. Проверьте настройки AI-ключа.'
+                : 'Failed to get a response. Check the AI key settings.',
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+        }
+      })();
     }
   };
 

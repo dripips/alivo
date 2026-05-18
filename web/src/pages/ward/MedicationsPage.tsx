@@ -58,8 +58,18 @@ const MedicationsPage: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
+        const today = await api.get<Array<{ medication: Medication; time: string; status: string; logId?: string }>>('/medical/today');
+        const medsMap = new Map<string, Medication>();
+        today.forEach(t => {
+          const m = t.medication as any;
+          if (!medsMap.has(m.id)) medsMap.set(m.id, { ...m, schedule: [], status: undefined });
+          const med = medsMap.get(m.id)!;
+          med.schedule = [...(med.schedule || []), { time: t.time, days: [] }];
+          if (t.status === 'taken') med.status = 'taken' as any;
+        });
         const data = await api.get<Medication[]>('/medical/medications');
-        setMedications(data);
+        data.forEach(m => { if (!medsMap.has(m.id)) medsMap.set(m.id, m); });
+        setMedications(Array.from(medsMap.values()));
       } catch {
         /* silently fail */
       } finally {

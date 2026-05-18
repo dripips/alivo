@@ -30,6 +30,11 @@ const GuardianWardDetail = lazy(() => import("../pages/guardian/WardDetail"));
 const GuardianAlerts = lazy(() => import("../pages/guardian/Alerts"));
 const GuardianSettings = lazy(() => import("../pages/guardian/Settings"));
 
+const AdminLayout = lazy(() => import("../pages/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("../pages/admin/AdminUsers"));
+const AdminAiSettings = lazy(() => import("../pages/admin/AdminAiSettings"));
+
 const LANGS = ["ru", "en"];
 
 function getLang(): string {
@@ -75,6 +80,7 @@ const RootRedirect = () => {
 
   try {
     const u = JSON.parse(localStorage.getItem("alivo_user") || "{}");
+    if (u.role === "ADMIN") return <Navigate to={`/${l}/admin/dashboard`} replace />;
     if (u.role === "GUARDIAN") return <Navigate to={`/${l}/guardian/dashboard`} replace />;
   } catch {}
   return <Navigate to={`/${l}/ward/home`} replace />;
@@ -111,6 +117,13 @@ const AppRouter: React.FC = () => (
               <Route path="ward/:id" element={<GuardianWardDetail />} />
               <Route path="alerts" element={<GuardianAlerts />} />
               <Route path="settings" element={<GuardianSettings />} />
+            </Route>
+
+            <Route path="admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="ai" element={<AdminAiSettings />} />
             </Route>
           </Route>
         </Route>

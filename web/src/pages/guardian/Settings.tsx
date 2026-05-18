@@ -1,14 +1,23 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  UserPlus,
+  Trash2,
+  CreditCard,
+  BarChart3,
+  Globe,
+  LogOut,
+  Phone,
+  User,
+} from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
 import LanguageSwitcher from '../../components/common/LanguageSwitcher';
 
-/* ---------- Types ---------- */
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
 
 interface EmergencyContact {
   id: string;
@@ -29,17 +38,25 @@ interface Usage {
   aiMinutes: number;
 }
 
-/* ---------- Component ---------- */
+/* ------------------------------------------------------------------ */
+/*  Settings                                                           */
+/* ------------------------------------------------------------------ */
 
 const Settings: React.FC = () => {
-  const { t } = useTranslation(['guardian', 'common']);
+  const { t, i18n } = useTranslation(['guardian', 'common']);
+  const { lang } = useParams<{ lang: string }>();
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
+  const l = lang || 'ru';
+  const isRu = i18n.language === 'ru';
 
   /* ==== Emergency Contacts ==== */
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
   const [contactsLoading, setContactsLoading] = useState(true);
-  const [newContact, setNewContact] = useState({ name: '', phone: '', relation: '' });
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [newRelation, setNewRelation] = useState('');
   const [addingContact, setAddingContact] = useState(false);
 
   const loadContacts = useCallback(() => {
@@ -56,14 +73,21 @@ const Settings: React.FC = () => {
   }, [loadContacts]);
 
   const handleAddContact = async () => {
-    if (!newContact.name.trim() || !newContact.phone.trim()) return;
+    if (!newName.trim() || !newPhone.trim()) return;
     setAddingContact(true);
     try {
-      const created = await api.post<EmergencyContact>('/contacts', newContact);
+      const created = await api.post<EmergencyContact>('/contacts', {
+        name: newName.trim(),
+        phone: newPhone.trim(),
+        relation: newRelation.trim(),
+      });
       setContacts((prev) => [...prev, created]);
-      setNewContact({ name: '', phone: '', relation: '' });
+      setNewName('');
+      setNewPhone('');
+      setNewRelation('');
+      setShowAddForm(false);
     } catch {
-      /* silently fail for now */
+      /* silently fail */
     } finally {
       setAddingContact(false);
     }
@@ -90,161 +114,277 @@ const Settings: React.FC = () => {
   /* ==== Logout ==== */
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate(`/${l}/login`);
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* ======== Emergency Contacts ======== */}
-      <Card className="animate-fade-up">
-        <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-          Emergency Contacts
-        </h2>
+    <div className="px-5 pt-3 pb-8 space-y-7 max-w-2xl mx-auto">
+      {/* ── Title ── */}
+      <h1 className="text-[34px] font-bold tracking-tight animate-fade-up">
+        {isRu ? 'Настройки' : 'Settings'}
+      </h1>
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/*  EMERGENCY CONTACTS                                          */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      <section className="animate-fade-up" style={{ animationDelay: '40ms' }}>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <h2 className="text-[14px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide">
+            {isRu ? 'Экстренные контакты' : 'Emergency Contacts'}
+          </h2>
+          {!showAddForm && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-1 text-[15px] text-[var(--color-primary)] font-medium active:opacity-60 transition-opacity cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              {isRu ? 'Добавить' : 'Add'}
+            </button>
+          )}
+        </div>
 
         {contactsLoading ? (
-          <p className="text-sm text-[var(--color-text-secondary)] animate-pulse">
-            {t('common:loading')}
-          </p>
-        ) : (
-          <>
-            {contacts.length === 0 && (
-              <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                {t('common:no_data')}
-              </p>
-            )}
-
-            <ul className="space-y-2 mb-4">
-              {contacts.map((c) => (
-                <li
-                  key={c.id}
-                  className="flex items-center justify-between py-2 px-3 rounded-[var(--radius-sm)] bg-[var(--color-surface)]"
-                >
-                  <div>
-                    <p className="font-medium text-sm text-[var(--color-text)]">{c.name}</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">
-                      {c.phone}
-                      {c.relation && ` · ${c.relation}`}
-                    </p>
-                  </div>
-                  <Button variant="danger" size="sm" onClick={() => handleDeleteContact(c.id)}>
-                    {t('common:delete')}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-
-            {/* Add contact form */}
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Input
-                  placeholder={t('common:name')}
-                  value={newContact.name}
-                  onChange={(e) =>
-                    setNewContact((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                />
-                <Input
-                  placeholder={t('common:phone')}
-                  type="tel"
-                  value={newContact.phone}
-                  onChange={(e) =>
-                    setNewContact((prev) => ({ ...prev, phone: e.target.value }))
-                  }
-                />
-                <Input
-                  placeholder="Relation"
-                  value={newContact.relation}
-                  onChange={(e) =>
-                    setNewContact((prev) => ({ ...prev, relation: e.target.value }))
-                  }
-                />
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                loading={addingContact}
-                onClick={handleAddContact}
-              >
-                + Add Contact
-              </Button>
-            </div>
-          </>
-        )}
-      </Card>
-
-      {/* ======== Billing ======== */}
-      <Card
-        className="animate-fade-up"
-        {...({ style: { animationDelay: '60ms' } } as React.HTMLAttributes<HTMLDivElement>)}
-      >
-        <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-          {t('guardian:billing')}
-        </h2>
-
-        {subscription ? (
-          <div className="space-y-2 text-sm mb-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--color-text-secondary)]">Plan</span>
-              <span className="font-semibold text-[var(--color-text)] capitalize">
-                {subscription.plan}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--color-text-secondary)]">Status</span>
-              <span className="font-semibold text-[var(--color-success)] capitalize">
-                {subscription.status}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--color-text-secondary)]">Renews</span>
-              <span className="text-[var(--color-text)]">
-                {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
-              </span>
-            </div>
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <p className="text-sm text-[var(--color-text-secondary)]">{t('common:no_data')}</p>
-        )}
+          <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden">
+            {contacts.length === 0 && !showAddForm && (
+              <div className="px-5 py-5 text-center">
+                <p className="text-[15px] text-[var(--color-text-tertiary)]">
+                  {isRu ? 'Нет контактов' : 'No contacts yet'}
+                </p>
+              </div>
+            )}
 
-        {usage && (
-          <>
-            <h3 className="text-sm font-semibold text-[var(--color-text)] mt-4 mb-2">
-              {t('guardian:usage')}
-            </h3>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold text-[var(--color-primary)]">{usage.checkIns}</p>
-                <p className="text-xs text-[var(--color-text-secondary)]">Check-ins</p>
+            {contacts.map((contact, idx) => (
+              <div key={contact.id}>
+                {idx > 0 && (
+                  <div className="border-t border-[var(--color-separator)] ml-[60px]" />
+                )}
+                <div className="flex items-center gap-3.5 px-5 py-3.5 min-h-[56px]">
+                  <div
+                    className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center shrink-0"
+                    style={{ background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)' }}
+                  >
+                    <User className="w-[18px] h-[18px] text-[var(--color-primary)]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[17px] font-medium text-[var(--color-text)]">
+                      {contact.name}
+                    </p>
+                    <p className="text-[13px] text-[var(--color-text-tertiary)] mt-0.5">
+                      {contact.phone}
+                      {contact.relation && ` · ${contact.relation}`}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteContact(contact.id)}
+                    className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center shrink-0 active:opacity-60 transition-opacity cursor-pointer"
+                    style={{ background: 'color-mix(in srgb, var(--color-danger) 10%, transparent)' }}
+                  >
+                    <Trash2 className="w-[16px] h-[16px] text-[var(--color-danger)]" />
+                  </button>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-[var(--color-danger)]">{usage.sosAlerts}</p>
-                <p className="text-xs text-[var(--color-text-secondary)]">SOS Alerts</p>
+            ))}
+
+            {/* Add form */}
+            {showAddForm && (
+              <>
+                {contacts.length > 0 && (
+                  <div className="border-t border-[var(--color-separator)] ml-5" />
+                )}
+                <div className="px-5 py-4 space-y-3">
+                  <input
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder={isRu ? 'Имя' : 'Name'}
+                    className="w-full h-11 px-3.5 bg-[var(--color-surface-secondary)] text-[var(--color-text)] rounded-[var(--radius-sm)] border-0 text-[15px] placeholder:text-[var(--color-text-quaternary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+                  />
+                  <input
+                    type="tel"
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(e.target.value)}
+                    placeholder={isRu ? 'Телефон' : 'Phone'}
+                    className="w-full h-11 px-3.5 bg-[var(--color-surface-secondary)] text-[var(--color-text)] rounded-[var(--radius-sm)] border-0 text-[15px] placeholder:text-[var(--color-text-quaternary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+                  />
+                  <input
+                    type="text"
+                    value={newRelation}
+                    onChange={(e) => setNewRelation(e.target.value)}
+                    placeholder={isRu ? 'Отношение (необязательно)' : 'Relation (optional)'}
+                    className="w-full h-11 px-3.5 bg-[var(--color-surface-secondary)] text-[var(--color-text)] rounded-[var(--radius-sm)] border-0 text-[15px] placeholder:text-[var(--color-text-quaternary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+                  />
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddForm(false);
+                        setNewName('');
+                        setNewPhone('');
+                        setNewRelation('');
+                      }}
+                      className="flex-1 h-11 rounded-[var(--radius-sm)] bg-[var(--color-surface-secondary)] text-[15px] font-semibold text-[var(--color-text)] active:opacity-60 transition-opacity cursor-pointer"
+                    >
+                      {isRu ? 'Отмена' : 'Cancel'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddContact}
+                      disabled={addingContact || !newName.trim() || !newPhone.trim()}
+                      className="flex-1 h-11 rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white text-[15px] font-semibold active:opacity-60 transition-opacity cursor-pointer disabled:opacity-40"
+                    >
+                      {addingContact ? (
+                        <div className="w-5 h-5 mx-auto border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : isRu ? (
+                        'Сохранить'
+                      ) : (
+                        'Save'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/*  SUBSCRIPTION                                                */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      <section className="animate-fade-up" style={{ animationDelay: '80ms' }}>
+        <h2 className="text-[14px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide mb-3 px-1">
+          {isRu ? 'Подписка' : 'Subscription'}
+        </h2>
+
+        <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden">
+          {subscription ? (
+            <>
+              {/* Plan row */}
+              <div className="flex items-center gap-3.5 px-5 py-4 min-h-[52px]">
+                <div
+                  className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center shrink-0"
+                  style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)' }}
+                >
+                  <CreditCard className="w-[18px] h-[18px] text-[var(--color-accent)]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[17px] font-medium text-[var(--color-text)] capitalize">
+                    {subscription.plan}
+                  </p>
+                  <p className="text-[13px] text-[var(--color-text-tertiary)] mt-0.5 capitalize">
+                    {subscription.status}
+                  </p>
+                </div>
+                <span className="text-[15px] text-[var(--color-text-tertiary)] shrink-0">
+                  {isRu ? 'до' : 'until'}{' '}
+                  {new Date(subscription.currentPeriodEnd).toLocaleDateString(
+                    isRu ? 'ru-RU' : 'en-US',
+                    { day: 'numeric', month: 'short' }
+                  )}
+                </span>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-[var(--color-accent)]">{usage.aiMinutes}</p>
-                <p className="text-xs text-[var(--color-text-secondary)]">AI Minutes</p>
-              </div>
+            </>
+          ) : (
+            <div className="px-5 py-5 text-center">
+              <p className="text-[15px] text-[var(--color-text-tertiary)]">
+                {isRu ? 'Нет данных о подписке' : 'No subscription data'}
+              </p>
             </div>
-          </>
-        )}
-      </Card>
-
-      {/* ======== Language ======== */}
-      <Card
-        className="animate-fade-up"
-        {...({ style: { animationDelay: '120ms' } } as React.HTMLAttributes<HTMLDivElement>)}
-      >
-        <div className="flex items-center justify-between">
-          <span className="font-medium text-[var(--color-text)]">Language</span>
-          <LanguageSwitcher />
+          )}
         </div>
-      </Card>
+      </section>
 
-      {/* ======== Logout ======== */}
-      <div className="animate-fade-up" style={{ animationDelay: '180ms' }}>
-        <Button variant="danger" size="lg" className="w-full" onClick={handleLogout}>
-          {t('common:logout')}
-        </Button>
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/*  USAGE STATS                                                 */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {usage && (
+        <section className="animate-fade-up" style={{ animationDelay: '120ms' }}>
+          <h2 className="text-[14px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide mb-3 px-1">
+            {isRu ? 'Использование' : 'Usage'}
+          </h2>
+
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              {
+                label: isRu ? 'Чек-ины' : 'Check-ins',
+                value: usage.checkIns,
+                color: 'var(--color-primary)',
+                icon: <BarChart3 className="w-[18px] h-[18px] text-[var(--color-primary)]" />,
+              },
+              {
+                label: isRu ? 'SOS' : 'SOS Alerts',
+                value: usage.sosAlerts,
+                color: 'var(--color-danger)',
+                icon: <Phone className="w-[18px] h-[18px] text-[var(--color-danger)]" />,
+              },
+              {
+                label: isRu ? 'AI мин.' : 'AI Minutes',
+                value: usage.aiMinutes,
+                color: 'var(--color-accent)',
+                icon: (
+                  <BarChart3 className="w-[18px] h-[18px] text-[var(--color-accent)]" />
+                ),
+              },
+            ].map(({ label, value, color, icon }) => (
+              <div
+                key={label}
+                className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] p-4 text-center"
+              >
+                <div
+                  className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center mx-auto mb-2"
+                  style={{ background: `color-mix(in srgb, ${color} 12%, transparent)` }}
+                >
+                  {icon}
+                </div>
+                <p className="text-[22px] font-bold leading-none" style={{ color }}>
+                  {value}
+                </p>
+                <p className="text-[13px] text-[var(--color-text-tertiary)] mt-1">{label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/*  LANGUAGE                                                    */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      <section className="animate-fade-up" style={{ animationDelay: '160ms' }}>
+        <h2 className="text-[14px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-wide mb-3 px-1">
+          {isRu ? 'Язык' : 'Language'}
+        </h2>
+
+        <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden">
+          <div className="flex items-center gap-3.5 px-5 py-4 min-h-[52px]">
+            <div
+              className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center shrink-0"
+              style={{ background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)' }}
+            >
+              <Globe className="w-[18px] h-[18px] text-[var(--color-primary)]" />
+            </div>
+            <span className="flex-1 text-[17px] font-medium text-[var(--color-text)]">
+              {isRu ? 'Язык интерфейса' : 'App Language'}
+            </span>
+            <LanguageSwitcher />
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/*  LOGOUT                                                      */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      <div className="animate-fade-up pt-2" style={{ animationDelay: '200ms' }}>
+        <button
+          onClick={handleLogout}
+          className="w-full h-[50px] rounded-[var(--radius-md)] bg-[var(--color-danger)] text-white text-[17px] font-semibold flex items-center justify-center gap-2 active:opacity-60 transition-opacity cursor-pointer"
+        >
+          <LogOut className="w-5 h-5" />
+          {isRu ? 'Выйти' : 'Log Out'}
+        </button>
       </div>
     </div>
   );
