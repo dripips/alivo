@@ -1,188 +1,85 @@
 import React, { useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  Users,
-  BrainCircuit,
-  CreditCard,
-  LogOut,
-  Menu,
-} from 'lucide-react';
+import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { LayoutDashboard, Users, BrainCircuit, LogOut, Menu, X } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
-
-/* ------------------------------------------------------------------ */
-/*  Nav items                                                          */
-/* ------------------------------------------------------------------ */
-
-interface NavItem {
-  key: string;
-  label: string;
-  icon: React.ReactNode;
-  path: string;
-}
-
-const navItems: NavItem[] = [
-  {
-    key: 'dashboard',
-    label: 'Dashboard',
-    icon: <LayoutDashboard className="w-5 h-5" />,
-    path: 'dashboard',
-  },
-  {
-    key: 'users',
-    label: 'Users',
-    icon: <Users className="w-5 h-5" />,
-    path: 'users',
-  },
-  {
-    key: 'ai',
-    label: 'AI Settings',
-    icon: <BrainCircuit className="w-5 h-5" />,
-    path: 'ai',
-  },
-  {
-    key: 'billing',
-    label: 'Billing',
-    icon: <CreditCard className="w-5 h-5" />,
-    path: 'billing',
-  },
-];
-
-/* ------------------------------------------------------------------ */
-/*  Page title mapping                                                 */
-/* ------------------------------------------------------------------ */
-
-const pageTitles: Record<string, string> = {
-  dashboard: 'Dashboard',
-  users: 'Users',
-  ai: 'AI Settings',
-  billing: 'Billing',
-};
-
-/* ------------------------------------------------------------------ */
-/*  AdminLayout                                                        */
-/* ------------------------------------------------------------------ */
+import LanguageSwitcher from '../../components/common/LanguageSwitcher';
 
 const AdminLayout: React.FC = () => {
   const { lang } = useParams<{ lang: string }>();
+  const { i18n } = useTranslation();
   const location = useLocation();
-  const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const [open, setOpen] = useState(false);
 
   const l = lang || 'ru';
+  const isRu = i18n.language === 'ru';
 
-  /* Determine active segment */
   const segments = location.pathname.split('/');
-  const activeSegment =
-    segments[segments.indexOf('admin') + 1] || 'dashboard';
-  const title = pageTitles[activeSegment] || 'Admin';
+  const active = segments[segments.indexOf('admin') + 1] || 'dashboard';
 
-  /* Current user */
-  const user = useAuthStore((s) => s.user);
-  const userName = user?.name || user?.email || 'Admin';
+  const navItems = [
+    { key: 'dashboard', label: isRu ? 'Статистика' : 'Dashboard', icon: LayoutDashboard, path: 'dashboard' },
+    { key: 'users', label: isRu ? 'Пользователи' : 'Users', icon: Users, path: 'users' },
+    { key: 'ai', label: isRu ? 'AI настройки' : 'AI Settings', icon: BrainCircuit, path: 'ai' },
+  ];
 
-  const handleLogout = () => {
-    logout();
-    navigate(`/${l}/login`);
-  };
+  const handleLogout = () => { logout(); window.location.href = `/${l}/login`; };
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex">
-      {/* ── Mobile hamburger ── */}
-      <button
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Open menu"
-        className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-[var(--radius-sm)] glass border border-[var(--color-border)] cursor-pointer"
-      >
-        <Menu className="w-6 h-6" />
+    <div className="min-h-screen bg-[var(--color-bg)]">
+      <button onClick={() => setOpen(true)} className="fixed top-3 left-3 z-50 md:hidden w-10 h-10 flex items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-surface)] shadow-[var(--shadow-card)] cursor-pointer">
+        <Menu className="w-5 h-5 text-[var(--color-text-tertiary)]" />
       </button>
 
-      {/* ── Mobile overlay ── */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
+      {open && <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setOpen(false)} />}
 
-      {/* ── Sidebar ── */}
-      <aside
-        className={[
-          'fixed top-0 left-0 z-50 h-full w-64',
-          'glass border-r border-[var(--color-border)]',
-          'flex flex-col',
-          'transition-transform duration-300',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-          'md:translate-x-0',
-        ].join(' ')}
-      >
-        {/* Logo */}
-        <div className="px-6 py-6 border-b border-[var(--color-border)]">
-          <Link
-            to={`/${l}/admin/dashboard`}
-            className="text-[22px] font-extrabold tracking-tight"
-          >
-            <span className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] bg-clip-text text-transparent">
-              Alivo Admin
-            </span>
-          </Link>
+      <aside className={`fixed top-0 left-0 z-50 h-full w-[260px] bg-[var(--color-surface)] border-r border-[var(--color-separator)] flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+        <div className="flex items-center justify-between px-5 h-14 border-b border-[var(--color-separator)]">
+          <Link to={`/${l}/admin/dashboard`} className="text-[20px] font-bold text-[var(--color-primary)]">Alivo Admin</Link>
+          <button onClick={() => setOpen(false)} className="md:hidden w-8 h-8 flex items-center justify-center cursor-pointer">
+            <X className="w-5 h-5 text-[var(--color-text-tertiary)]" />
+          </button>
         </div>
 
-        {/* Nav links */}
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map((item) => {
-            const isActive = activeSegment === item.path;
+            const Icon = item.icon;
+            const isActive = active === item.path;
             return (
               <Link
                 key={item.key}
                 to={`/${l}/admin/${item.path}`}
-                onClick={() => setSidebarOpen(false)}
-                className={[
-                  'flex items-center gap-3 px-4 py-3 rounded-[var(--radius-sm)]',
-                  'transition-colors duration-200 font-medium',
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-sm)] text-[15px] font-medium transition-colors ${
                   isActive
                     ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                    : 'text-[var(--color-text)]/70 hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
-                ].join(' ')}
+                    : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)]'
+                }`}
               >
-                {item.icon}
-                <span>{item.label}</span>
+                <Icon className="w-5 h-5" />
+                {item.label}
               </Link>
             );
           })}
         </nav>
 
-        {/* User footer */}
-        <div className="px-4 py-4 border-t border-[var(--color-border)] space-y-2">
-          <div className="text-sm font-medium text-[var(--color-text)] truncate px-2">
-            {userName}
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-[var(--radius-sm)] transition-colors cursor-pointer"
-          >
-            <LogOut className="w-[18px] h-[18px]" />
-            Logout
+        <div className="px-4 py-4 border-t border-[var(--color-separator)] space-y-3">
+          <LanguageSwitcher />
+          <p className="text-[13px] text-[var(--color-text-tertiary)] px-1 truncate">{user?.name || 'Admin'}</p>
+          <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-[14px] text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-[var(--radius-sm)] transition-colors cursor-pointer">
+            <LogOut className="w-4 h-4" />
+            {isRu ? 'Выйти' : 'Sign Out'}
           </button>
         </div>
       </aside>
 
-      {/* ── Main area ── */}
-      <div className="flex-1 flex flex-col min-h-screen md:ml-64">
-        {/* Top bar */}
-        <header className="sticky top-0 z-20 glass border-b border-[var(--color-border)] px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-[var(--color-text)] md:ml-0 ml-12">
-            {title}
-          </h1>
-        </header>
-
-        {/* Content */}
-        <main className="flex-1 p-6">
+      <main className="md:ml-[260px] min-h-screen">
+        <div className="max-w-5xl mx-auto p-5 md:p-8">
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };

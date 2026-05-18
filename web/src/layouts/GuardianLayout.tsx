@@ -1,42 +1,16 @@
 import React from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import Sidebar from "../components/common/Sidebar";
 
-const pageTitles: Record<string, string> = {
-  "/guardian/dashboard": "Dashboard",
-  "/guardian/wards": "My Wards",
-  "/guardian/alerts": "Alerts",
-  "/guardian/settings": "Settings",
-};
-
-const GuardianLayout: React.FC = () => {
-  const location = useLocation();
-
-  const title =
-    pageTitles[location.pathname] ||
-    (location.pathname.startsWith("/guardian/ward/") ? "Ward Details" : "Dashboard");
-
-  return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex">
-      {/* Sidebar */}
-      <Sidebar />
-
-      {/* Main area */}
-      <div className="flex-1 flex flex-col min-h-screen md:ml-64">
-        {/* Top bar */}
-        <header className="sticky top-0 z-20 glass border-b border-[var(--color-border)] px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-[var(--color-text)]">
-            {title}
-          </h1>
-        </header>
-
-        {/* Content */}
-        <main className="flex-1 p-6">
-          <Outlet />
-        </main>
+const GuardianLayout: React.FC = () => (
+  <div className="min-h-screen bg-[var(--color-bg)]">
+    <Sidebar />
+    <main className="md:ml-[260px] min-h-screen">
+      <div className="max-w-4xl mx-auto p-5 md:p-8">
+        <Outlet />
       </div>
-    </div>
-  );
-};
+    </main>
+  </div>
+);
 
 export default GuardianLayout;
