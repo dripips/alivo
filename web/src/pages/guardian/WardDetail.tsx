@@ -175,8 +175,9 @@ const WardDetail: React.FC = () => {
     );
   }
 
-  const { ward, mood, checkIns, medical, fraudAlerts, wellness } = data;
-  const adherencePercent = Math.round(medical.adherence.adherenceRate * 100);
+  const { ward, mood, checkIns, medical, fraudAlerts } = data;
+  const wellness = (data as any).wellness?.latest || (data as any).wellness || null;
+  const adherencePercent = Math.min(100, Math.round(medical.adherence.adherenceRate));
   const status = statusMap[ward.status || (ward.isActive ? 'ok' : 'unknown')] || statusMap.unknown;
 
   const TrendIcon =
@@ -248,22 +249,23 @@ const WardDetail: React.FC = () => {
 
           {/* Last 10 check-in mood dots */}
           <div className="flex items-end gap-2 flex-wrap">
-            {mood.data.slice(0, 10).map((entry) => (
-              <div key={entry.id} className="flex flex-col items-center gap-1.5" title={entry.note ?? ''}>
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-[13px] font-bold"
-                  style={{ background: moodColors[entry.score] || '#8E8E93' }}
-                >
-                  {entry.score}
+            {mood.data.slice(0, 10).map((entry: any, i: number) => {
+              const score = entry.mood ?? entry.score ?? 0;
+              const date = entry.respondedAt || entry.scheduledAt || entry.createdAt;
+              return (
+                <div key={entry.id || i} className="flex flex-col items-center gap-1.5">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white text-[13px] font-bold"
+                    style={{ background: moodColors[score] || '#8E8E93' }}
+                  >
+                    {score || '?'}
+                  </div>
+                  <span className="text-[11px] text-[var(--color-text-quaternary)]">
+                    {date ? new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}
+                  </span>
                 </div>
-                <span className="text-[11px] text-[var(--color-text-quaternary)]">
-                  {new Date(entry.createdAt).toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </span>
-              </div>
-            ))}
+              );
+            })}
             {mood.data.length === 0 && (
               <p className="text-[15px] text-[var(--color-text-tertiary)]">
                 {isRu ? 'Нет данных' : 'No data'}
@@ -318,7 +320,10 @@ const WardDetail: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <p className="text-[17px] font-medium text-[var(--color-text)]">{med.name}</p>
                   <p className="text-[13px] text-[var(--color-text-tertiary)] mt-0.5">
-                    {med.dosage} {med.schedule ? `· ${med.schedule}` : ''}
+                    {med.dosage}
+                    {med.schedule && typeof med.schedule === 'object'
+                      ? ` · ${(Array.isArray(med.schedule) ? med.schedule : []).map((s: any) => s.time || s).join(', ')}`
+                      : med.schedule ? ` · ${med.schedule}` : ''}
                   </p>
                 </div>
                 {med.taken != null && (
@@ -364,8 +369,8 @@ const WardDetail: React.FC = () => {
               iconBg: 'color-mix(in srgb, var(--color-danger) 14%, transparent)',
               label: isRu ? 'Давление' : 'BP',
               value:
-                wellness?.systolic != null && wellness?.diastolic != null
-                  ? `${wellness.systolic}/${wellness.diastolic}`
+                (wellness?.bloodPressureH ?? wellness?.systolic) != null
+                  ? `${wellness.bloodPressureH ?? wellness.systolic}/${wellness.bloodPressureL ?? wellness.diastolic}`
                   : '--',
               unit: 'mmHg',
             },
@@ -476,29 +481,37 @@ const WardDetail: React.FC = () => {
           </div>
         ) : (
           <div className="bg-[var(--color-surface)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden">
-            {checkIns.recent.map((ci, idx) => (
-              <div key={ci.id}>
+            {checkIns.recent.map((ci: any, idx: number) => {
+              const date = ci.respondedAt || ci.scheduledAt || ci.createdAt;
+              const moodVal = ci.mood;
+              const statusLabel = ci.status === 'RESPONDED' ? (isRu ? 'Ответил' : 'Responded')
+                : ci.status === 'MISSED' ? (isRu ? 'Пропущен' : 'Missed')
+                : ci.status === 'ESCALATED' ? (isRu ? 'Эскалация' : 'Escalated')
+                : (isRu ? 'Ожидание' : 'Pending');
+              return (
+              <div key={ci.id || idx}>
                 {idx > 0 && (
                   <div className="border-t border-[var(--color-separator)] ml-[60px]" />
                 )}
                 <div className="flex items-center gap-3.5 px-5 py-3.5 min-h-[56px]">
                   <div
-                    className="w-9 h-9 rounded-[var(--radius-xs)] flex items-center justify-center shrink-0"
-                    style={{ background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)' }}
+                    className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-white text-[13px] font-bold"
+                    style={{ background: moodVal ? (moodColors[moodVal] || '#8E8E93') : 'var(--color-surface-secondary)' }}
                   >
-                    <Clock className="w-[18px] h-[18px] text-[var(--color-primary)]" />
+                    {moodVal || '—'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-medium text-[var(--color-text)]">
-                      {ci.summary}
+                      {statusLabel}{moodVal ? ` · ${isRu ? 'настроение' : 'mood'} ${moodVal}/5` : ''}
                     </p>
                     <p className="text-[13px] text-[var(--color-text-quaternary)] mt-0.5">
-                      {formatDate(ci.createdAt)}
+                      {date ? formatDate(date) : '—'}
                     </p>
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
