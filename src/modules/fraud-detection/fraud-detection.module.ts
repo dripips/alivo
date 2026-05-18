@@ -4,7 +4,7 @@ import { ChannelsModule } from '../channels/channels.module';
 import { ContactsModule } from '../contacts/contacts.module';
 
 @Module({
-  imports: [ChannelsModule, ContactsModule],
+  imports: [forwardRef(() => ChannelsModule), ContactsModule],
   providers: [FraudDetectionService],
   exports: [FraudDetectionService],
 })
