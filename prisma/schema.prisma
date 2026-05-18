@@ -103,6 +103,9 @@ model User {
   subscription       Subscription?
   usageLogs          UsageLog[]
   pushSubscriptions  PushSubscription[]
+  passwordResets     PasswordReset[]
+  refreshTokens      RefreshToken[]
+  webhooks           Webhook[]
 }
 
 model UserChannel {
@@ -403,6 +406,38 @@ model AppSetting {
 }
 
 // ══════════════════════════════════════════════════════════
+// Password Reset
+// ══════════════════════════════════════════════════════════
+
+model PasswordReset {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+}
+
+// ══════════════════════════════════════════════════════════
+// Refresh Token
+// ══════════════════════════════════════════════════════════
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+}
+
+// ══════════════════════════════════════════════════════════
 // Push Notifications
 // ══════════════════════════════════════════════════════════
 
@@ -417,4 +452,21 @@ model PushSubscription {
 
   @@unique([userId, endpoint])
   @@index([userId])
+}
+
+// ══════════════════════════════════════════════════════════
+// Webhooks
+// ══════════════════════════════════════════════════════════
+
+model Webhook {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  url       String
+  events    Json     // ["checkin.missed", "sos.triggered", "fraud.detected", "*"]
+  secret    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isActive])
 }
