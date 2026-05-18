@@ -28,5 +28,12 @@
   "no_account": "Don't have an account?",
   "has_account": "Already have an account?",
   "select_role": "Please select a role",
-  "who_are_you": "Who are you?"
+  "who_are_you": "Who are you?",
+  "notifications": "Notifications",
+  "push_enable": "Enable notifications",
+  "push_disable": "Disable notifications",
+  "push_enabled": "Notifications enabled",
+  "push_denied": "Notifications blocked in browser settings",
+  "push_unsupported": "Your browser doesn't support push notifications",
+  "push_description": "Get alerts for check-ins, medications, and emergencies"
 }
