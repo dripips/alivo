@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Patch, UseGuards, Req, Body } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UsersService } from './users.service';
@@ -14,6 +14,12 @@ export class UsersController {
   @ApiOperation({ summary: 'Get current user profile with all relations' })
   getMe(@Req() req: any) {
     return this.users.findById(req.user.id);
+  }
+
+  @Patch('me')
+  @ApiOperation({ summary: 'Update current user profile' })
+  updateProfile(@Req() req: any, @Body() dto: any) {
+    return this.users.updateProfile(req.user.id, dto);
   }
 
   @Get('me/wards')

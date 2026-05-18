@@ -102,6 +102,7 @@ model User {
   birthDate          DateTime?
   subscription       Subscription?
   usageLogs          UsageLog[]
+  pushSubscriptions  PushSubscription[]
 }
 
 model UserChannel {
@@ -388,4 +389,32 @@ model UsageLog {
   createdAt DateTime @default(now())
 
   @@index([userId, type, createdAt])
+}
+
+// ══════════════════════════════════════════════════════════
+// App Settings (key-value store for admin configuration)
+// ══════════════════════════════════════════════════════════
+
+model AppSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// ══════════════════════════════════════════════════════════
+// Push Notifications
+// ══════════════════════════════════════════════════════════
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, endpoint])
+  @@index([userId])
 }

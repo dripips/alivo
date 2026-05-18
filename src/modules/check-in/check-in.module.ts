@@ -6,13 +6,12 @@ import { CheckInProcessor } from './check-in.processor';
 import { CheckInController } from './check-in.controller';
 import { ChannelsModule } from '../channels/channels.module';
 import { UsersModule } from '../users/users.module';
-import { forwardRef as fwdRef } from '@nestjs/common';
 import { EscalationModule } from '../escalation/escalation.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({ name: 'checkin' }),
-    ChannelsModule,
+    forwardRef(() => ChannelsModule),
     UsersModule,
     forwardRef(() => EscalationModule),
   ],

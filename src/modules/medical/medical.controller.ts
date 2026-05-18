@@ -23,6 +23,12 @@ import { CreateMedicationDto } from './dto/create-medication.dto';
 export class MedicalController {
   constructor(private medical: MedicalService) {}
 
+  @Get('today')
+  @ApiOperation({ summary: 'Get today medication status for current user' })
+  getTodayStatus(@Req() req: any) {
+    return this.medical.getTodayStatus(req.user.id);
+  }
+
   @Put('profile')
   @ApiOperation({ summary: 'Create or update medical profile' })
   upsertProfile(@Req() req: any, @Body() dto: CreateMedicalProfileDto) {

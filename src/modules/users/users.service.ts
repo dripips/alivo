@@ -54,6 +54,26 @@ export class UsersService {
     return relations.map((r) => r.ward);
   }
 
+  async updateProfile(
+    userId: string,
+    data: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      locale?: string;
+      timezone?: string;
+      birthDate?: string;
+    },
+  ) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...data,
+        birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
+      },
+    });
+  }
+
   async linkChannel(
     userId: string,
     type: string,

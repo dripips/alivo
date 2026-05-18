@@ -3,6 +3,7 @@ import { PrismaService } from '../../common/prisma.service';
 import { UsersService } from '../users/users.service';
 import { CheckInService } from '../check-in/check-in.service';
 import { MedicalService } from '../medical/medical.service';
+import { WellnessService } from '../wellness/wellness.service';
 
 @Injectable()
 export class DashboardService {
@@ -11,6 +12,7 @@ export class DashboardService {
     private users: UsersService,
     private checkIn: CheckInService,
     private medical: MedicalService,
+    private wellness: WellnessService,
   ) {}
 
   async getWardDashboard(guardianId: string, wardId: string) {
@@ -18,18 +20,27 @@ export class DashboardService {
     const ward = wards.find((w) => w.id === wardId);
     if (!ward) return null;
 
-    const [moodStats, medications, adherence, recentCheckIns, fraudAlerts] =
-      await Promise.all([
-        this.checkIn.getMoodStats(wardId, 30),
-        this.medical.getMedications(wardId),
-        this.medical.getMedicationAdherence(wardId, 7),
-        this.checkIn.getHistory(wardId, 10),
-        this.prisma.fraudAlert.findMany({
-          where: { userId: wardId },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-        }),
-      ]);
+    const [
+      moodStats,
+      medications,
+      adherence,
+      recentCheckIns,
+      fraudAlerts,
+      latestVitals,
+      wellnessStats,
+    ] = await Promise.all([
+      this.checkIn.getMoodStats(wardId, 30),
+      this.medical.getMedications(wardId),
+      this.medical.getMedicationAdherence(wardId, 7),
+      this.checkIn.getHistory(wardId, 10),
+      this.prisma.fraudAlert.findMany({
+        where: { userId: wardId },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+      this.wellness.getLatest(wardId),
+      this.wellness.getStats(wardId, 7),
+    ]);
 
     const lastCheckIn = recentCheckIns[0] ?? null;
     const lastActive = lastCheckIn?.respondedAt ?? lastCheckIn?.scheduledAt;
@@ -53,6 +64,10 @@ export class DashboardService {
         profile: ward.medicalProfile,
       },
       fraudAlerts,
+      wellness: {
+        latest: latestVitals,
+        recent: wellnessStats,
+      },
     };
   }
 

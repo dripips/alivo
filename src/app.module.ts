@@ -22,6 +22,8 @@ import { WellnessModule } from './modules/wellness/wellness.module';
 import { WalkSafetyModule } from './modules/walk-safety/walk-safety.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { LandingModule } from './modules/landing/landing.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { PushModule } from './modules/push/push.module';
 
 @Module({
   imports: [
@@ -65,6 +67,8 @@ import { LandingModule } from './modules/landing/landing.module';
     WalkSafetyModule,
     BillingModule,
     LandingModule,
+    AdminModule,
+    PushModule,
   ],
 })
 export class AppModule {}

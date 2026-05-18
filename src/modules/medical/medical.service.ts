@@ -180,6 +180,73 @@ export class MedicalService {
     return log;
   }
 
+  async getTodayStatus(userId: string) {
+    const medications = await this.prisma.medication.findMany({
+      where: { userId, isActive: true },
+    });
+
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const todayLogs = await this.prisma.medicationLog.findMany({
+      where: {
+        medication: { userId },
+        scheduledAt: { gte: startOfDay, lte: endOfDay },
+      },
+    });
+
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const currentDay = dayNames[now.getDay()];
+
+    const result: Array<{
+      medication: any;
+      time: string;
+      status: 'taken' | 'pending' | 'upcoming';
+      logId?: string;
+    }> = [];
+
+    for (const med of medications) {
+      const schedule = med.schedule as Array<{ time: string; days: string[] }>;
+      if (!schedule) continue;
+
+      for (const entry of schedule) {
+        if (!entry.days.includes(currentDay)) continue;
+
+        const log = todayLogs.find(
+          (l) => l.medicationId === med.id && l.status === 'TAKEN',
+        );
+
+        let status: 'taken' | 'pending' | 'upcoming';
+        if (log) {
+          status = 'taken';
+        } else if (entry.time <= currentTime) {
+          status = 'pending';
+        } else {
+          status = 'upcoming';
+        }
+
+        result.push({
+          medication: {
+            id: med.id,
+            name: med.name,
+            dosage: med.dosage,
+            instructions: med.instructions,
+          },
+          time: entry.time,
+          status,
+          logId: log?.id,
+        });
+      }
+    }
+
+    result.sort((a, b) => a.time.localeCompare(b.time));
+    return result;
+  }
+
   async getMedicationAdherence(userId: string, days = 30) {
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const logs = await this.prisma.medicationLog.findMany({
